@@ -17,13 +17,15 @@ namespace SeroJob.AudioSystem
                     var manager = new GameObject("AudioSystemManager");
                     var comp = manager.AddComponent<AudioSystemManager>();
                     comp.Init();
-                    _instance = comp;
                 }
 
                 return _instance;
             }
         }
         private static AudioSystemManager _instance;
+
+        public AudioSystemLibraryCollection Library { get; private set; }
+        public AudioSystemSettings Settings { get; private set; }
 
         public bool IsInitialized { get; private set; } = false;
 
@@ -65,12 +67,7 @@ namespace SeroJob.AudioSystem
 
         private void OnDisable()
         {
-            foreach (var aliveData in _aliveAudioData)
-            {
-                if (aliveData == null) continue;
-                Stop(aliveData);
-            }
-            _aliveAudioData.Clear();
+            KillAll();
         }
 
         private void Init()
@@ -84,12 +81,17 @@ namespace SeroJob.AudioSystem
             _aliveAudioData = new();
             _deadAudioData = new();
 
+            Settings = GetSettings();
+            Library = new(GetLibrary());
+
             _lastUpdateTime = 0;
 
             Destroy(pref);
 
             IsInitialized = true;
             _instance = this;
+
+            DontDestroyOnLoad(gameObject);
         }
 
         public AliveAudioData Play(AudioClipContainer container)
@@ -105,6 +107,14 @@ namespace SeroJob.AudioSystem
             var aliveData = new AliveAudioData(container, source);
             _aliveAudioData.Add(aliveData);
             return aliveData;
+        }
+
+        public AliveAudioData Play(string containerID)
+        {
+            var container = Library.GetContainerFromID(containerID, Settings);
+            if (container == null) return null;
+
+            return Play(container);
         }
 
         public void Stop(AliveAudioData aliveAudioData)
@@ -134,6 +144,30 @@ namespace SeroJob.AudioSystem
             if (aliveAudioData.IsDisposed) return;
 
             aliveAudioData.Resume();
+        }
+
+        public void KillAll()
+        {
+            foreach (var aliveData in _aliveAudioData)
+            {
+                if (aliveData == null) continue;
+                Stop(aliveData);
+            }
+            _aliveAudioData.Clear();
+        }
+
+        private AudioContainerLibrary GetLibrary()
+        {
+            var path = "Serojob-AudioSystem/AudioContainerLibrary";
+
+            return Resources.Load<AudioContainerLibrary>(path);
+        }
+
+        private AudioSystemSettings GetSettings()
+        {
+            var path = "Serojob-AudioSystem/AudioSystemSettings";
+
+            return Resources.Load<AudioSystemSettings>(path);
         }
     }
 }

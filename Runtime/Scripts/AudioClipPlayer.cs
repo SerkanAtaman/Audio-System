@@ -5,6 +5,8 @@ namespace SeroJob.AudioSystem
 {
     public class AudioClipPlayer : MonoBehaviour
     {
+        public bool UseContainerID = false;
+        public string ContainerID;
         public AudioClipContainer Container;
 
         public bool SyncAudioSourceTransform = false;
@@ -35,7 +37,7 @@ namespace SeroJob.AudioSystem
         {
             if (IsPlaying) return;
 
-            _aliveAudioData = AudioSystemManager.Instance.Play(Container);
+            _aliveAudioData = UseContainerID ? AudioSystemManager.Instance.Play(ContainerID) : AudioSystemManager.Instance.Play(Container);
             AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
 
             if (SyncAudioSourceTransform) StartCoroutine(SyncSourceTransform());

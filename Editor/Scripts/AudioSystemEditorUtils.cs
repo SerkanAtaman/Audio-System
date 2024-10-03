@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 namespace SeroJob.AudioSystem.Editor
 {
@@ -26,18 +27,24 @@ namespace SeroJob.AudioSystem.Editor
         {
             if (Selection.count == 0) return;
 
+            EditorUtility.DisplayProgressBar("Audio System", "Creating audio clip containers", 0.0f);
+
             List<Object> newContainers = new List<Object>();
 
-            foreach (var obj in Selection.objects)
+            for (int i = 0; i < Selection.count; i++)
             {
+                var obj = Selection.objects[i];
                 if (obj == null) continue;
                 newContainers.Add(CreateAudioContainer((AudioClip)obj));
+                EditorUtility.DisplayProgressBar("Audio System", "Creating audio clip containers", i / Selection.count);
             }
 
             AssetDatabase.Refresh();
             AssetDatabase.SaveAssets();
 
             Selection.objects = newContainers.ToArray();
+
+            EditorUtility.ClearProgressBar();
         }
 
         public static AudioClipContainer CreateAudioContainer(AudioClip clip)
@@ -50,6 +57,7 @@ namespace SeroJob.AudioSystem.Editor
             var container = ScriptableObject.CreateInstance<AudioClipContainer>();
             container.ReceiveEditorData(clip);
             AssetDatabase.CreateAsset(container, containerPath);
+            AudioContainerLibraryEditorUtils.Update(container);
             return container;
         }
 
