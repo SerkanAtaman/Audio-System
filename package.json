@@ -1,0 +1,14 @@
+{
+  "name": "serojob-audio-system",
+  "version": "1.0.0",
+  "displayName": "Audio System",
+  "description": "Simple Auido Clip Playing System",
+  "unity": "2021.3",
+  "unityRelease": "0b5",
+  "dependencies": {},
+  "author": {
+    "name": "Serkan Ataman",
+    "email": "serkanataman66@gmail.com",
+    "url": "https://github.com/SerkanAtaman"
+  }
+}

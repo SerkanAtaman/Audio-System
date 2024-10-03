@@ -1,0 +1,16 @@
+{
+    "name": "serojob-audio-system-runtime",
+    "rootNamespace": "",
+    "references": [
+        "com.serojob.objectpool.runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
