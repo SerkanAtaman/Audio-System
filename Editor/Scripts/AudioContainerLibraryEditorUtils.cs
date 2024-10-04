@@ -95,6 +95,8 @@ namespace SeroJob.AudioSystem.Editor
                 result.Add(container);
             }
             library.Containers = result;
+            EditorUtility.SetDirty(library);
+            AssetDatabase.SaveAssetIfDirty(library);
         }
 
         public static bool IsIdentifierValid(uint identifier)
@@ -113,6 +115,7 @@ namespace SeroJob.AudioSystem.Editor
         {
             foreach (var item in library.Containers)
             {
+                if (item == null) continue;
                 if (item.ID == identifier) return true;
             }
 
@@ -124,6 +127,7 @@ namespace SeroJob.AudioSystem.Editor
             int result = 0;
             foreach (var item in library.Containers)
             {
+                if (item == null) continue;
                 if (item.ID == identifier) result++;
             }
 

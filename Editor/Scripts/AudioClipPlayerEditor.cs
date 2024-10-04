@@ -91,6 +91,12 @@ namespace SeroJob.AudioSystem.Editor
 
             bool result = true;
 
+            if (player.ContainerIDs == null)
+            {
+                _lastIdentifierValidationResult = true;
+                return _lastIdentifierValidationResult;
+            }
+
             foreach(var id in player.ContainerIDs)
             {
                 if (!AudioContainerLibraryEditorUtils.LibraryContainsIdentifier(id))
