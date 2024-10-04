@@ -96,6 +96,8 @@ namespace SeroJob.AudioSystem
 
         public AliveAudioData Play(AudioClipContainer container)
         {
+            if (container == null) return null;
+
             var source = _audioSourcePool.Pull();
             source.clip = container.AudioClip;
             source.transform.localPosition = Vector3.zero;
@@ -109,11 +111,10 @@ namespace SeroJob.AudioSystem
             return aliveData;
         }
 
-        public AliveAudioData Play(string containerID)
+        public AliveAudioData Play(uint containerID)
         {
-            var container = Library.GetContainerFromID(containerID, Settings);
+            var container = Library.GetContainerFromID(containerID);
             if (container == null) return null;
-
             return Play(container);
         }
 

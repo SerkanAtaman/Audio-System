@@ -21,24 +21,37 @@ namespace SeroJob.AudioSystem.Editor
 
             AudioClipPlayer player = (AudioClipPlayer)target;
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("UseContainerID"), new GUIContent("Use Container ID", "Decide whether to use the container if or the container asset reference"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("Type"), new GUIContent("Play Type", "Decide how this audio player chooses it's container to use"));
 
-            if (serializedObject.FindProperty("UseContainerID").boolValue)
+            var typeEnumIndex = serializedObject.FindProperty("Type").enumValueIndex;
+
+            if (typeEnumIndex == 0) // Container
             {
-                serializedObject.FindProperty("Container").objectReferenceValue = null;
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("ContainerID"), new GUIContent("Container Identifier", "The Unique Identifier of audio clip container"));
+                serializedObject.FindProperty("ContainerIDs").ClearArray();
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("Containers"), new GUIContent("Containers", "The Audio Clip Containers this player will use"));
+            }
+            else if (typeEnumIndex == 1) // ContainerWithID
+            {
+                serializedObject.FindProperty("Containers").ClearArray();
 
-                if (!CheckIdentifier(serializedObject.FindProperty("ContainerID").stringValue))
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("ContainerIDs"), new GUIContent("Container IDs", "The array of Unique ids of audio clip container"));
+
+                if (!CheckIdentifiers(player))
                 {
                     EditorGUILayout.HelpBox("Invalid Identifier", MessageType.Warning);
                 }
             }
-            else
+            else if (typeEnumIndex == 2) // RandomByTag
             {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("Container"), new GUIContent("Container", "The Audio Clip Container this player will use"));
-                serializedObject.FindProperty("ContainerID").stringValue = string.Empty;
+                serializedObject.FindProperty("ContainerIDs").ClearArray();
+                serializedObject.FindProperty("Containers").ClearArray();
+                var tags = AudioSystemEditorUtils.GetAllTagNames();
+
+                var tagID = serializedObject.FindProperty("TagID").uintValue;
+                var selectedTag = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the container"), (int)tagID, tags);
+                serializedObject.FindProperty("TagID").uintValue = (uint)selectedTag;
             }
-            
+
             EditorGUILayout.PropertyField(serializedObject.FindProperty("SyncAudioSourceTransform"), 
                 new GUIContent("Sync Audio Source Transform", "Decide whether the audio source that will be used to play this clip should be in the same position with this player"));
 
@@ -70,22 +83,24 @@ namespace SeroJob.AudioSystem.Editor
             serializedObject.ApplyModifiedProperties();
         }
 
-        private bool CheckIdentifier(string identifier)
+        private bool CheckIdentifiers(AudioClipPlayer player)
         {
-            if (string.IsNullOrEmpty(identifier))
-            {
-                _lastIdentifierValidationResult = false;
-                return _lastIdentifierValidationResult;
-            }
-            if(identifier.Length < 5)
-            {
-                _lastIdentifierValidationResult = false;
-                return _lastIdentifierValidationResult;
-            }
-            if (EditorApplication.timeSinceStartup - _lastIdentifierCheckTime < 2f) return _lastIdentifierValidationResult;
+            if (EditorApplication.timeSinceStartup - _lastIdentifierCheckTime < 1f) return _lastIdentifierValidationResult;
 
             _lastIdentifierCheckTime = EditorApplication.timeSinceStartup;
-            _lastIdentifierValidationResult = AudioContainerLibraryEditorUtils.LibraryContainsIdentifier(identifier);
+
+            bool result = true;
+
+            foreach(var id in player.ContainerIDs)
+            {
+                if (!AudioContainerLibraryEditorUtils.LibraryContainsIdentifier(id))
+                {
+                    result = false;
+                    break;
+                }
+            }
+
+            _lastIdentifierValidationResult = result;
             return _lastIdentifierValidationResult;
         }
     }

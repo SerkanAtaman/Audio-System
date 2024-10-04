@@ -15,23 +15,41 @@ namespace SeroJob.AudioSystem
             _library = library;
         }
 
-        public AudioClipContainer GetContainerFromID(string id, AudioSystemSettings settings)
+        public AudioClipContainer GetContainerFromID(uint id)
         {
-            foreach (var item in _library.Containers)
+            AudioClipContainer result = null;
+
+            foreach (var container in _library.Containers)
             {
-                if(string.Equals(item.Identifier, id)) return item;
+                if (container.ID == id)
+                {
+                    result = container;
+                    break;
+                }
             }
 
-            return null;
+            return result;
         }
 
-        public List<AudioClipContainer> GetAllContainersInCategory(string category)
+        public List<AudioClipContainer> GetContainersByTag(uint tagID)
         {
             List<AudioClipContainer> result = new();
 
-            foreach (var item in _library.Containers)
+            foreach (var container in _library.Containers)
             {
-                if (string.Equals(item.Category, category)) result.Add(item);
+                if (container.TagID == tagID) result.Add(container);
+            }
+
+            return result;
+        }
+
+        public List<AudioClipContainer> GetContainersByCategory(uint categoryID)
+        {
+            List<AudioClipContainer> result = new();
+
+            foreach (var container in _library.Containers)
+            {
+                if (container.CategoryID == categoryID) result.Add(container);
             }
 
             return result;
@@ -39,60 +57,50 @@ namespace SeroJob.AudioSystem
 #endif
 
 #if !UNITY_EDITOR
-        // category - identifier - container
-        private Dictionary<string, Dictionary<string, AudioClipContainer>> _containers;
+        private AudioClipContainer[] _allContainers;
 
         public AudioSystemLibraryCollection(AudioContainerLibrary library)
         {
-            _containers = new();
-            foreach (var container in library.Containers)
-            {
-                if (!_containers.ContainsKey(container.Category))
-                {
-                    _containers.Add(container.Category, new Dictionary<string, AudioClipContainer>());
-                    _containers[container.Category].Add(container.Identifier, container);
-                }
-                else
-                {
-                    _containers[container.Category].Add(container.Identifier, container);
-                }
-            }
+            _allContainers = library.Containers.ToArray();
+            library.Containers.Clear();
+            library.Containers = null;
         }
 
-        public AudioClipContainer GetContainerFromID(string id, AudioSystemSettings settings)
+        public AudioClipContainer GetContainerFromID(uint id)
         {
             AudioClipContainer result = null;
-            int count = settings.Categories.Length;
-            int index = 0;
 
-            while (index < count && result == null)
+            foreach (var container in _allContainers)
             {
-                try
+                if (container.ID == id)
                 {
-                    result = _containers[settings.Categories[index]][id];
-                    index++;
-                }
-                catch
-                {
-                    result = null;
-                    index++;
+                    result = container;
+                    break;
                 }
             }
 
             return result;
         }
 
-        public List<AudioClipContainer> GetAllContainersInCategory(string category)
+        public List<AudioClipContainer> GetContainersByTag(uint tagID)
         {
-            List<AudioClipContainer> result;
+            List<AudioClipContainer> result = new();
 
-            try
+            foreach (var container in _allContainers)
             {
-                result = _containers[category].Values.ToList();
+                if (container.TagID == tagID) result.Add(container);
             }
-            catch
+
+            return result;
+        }
+
+        public List<AudioClipContainer> GetContainersByCategory(uint categoryID)
+        {
+            List<AudioClipContainer> result = new();
+
+            foreach (var container in _allContainers)
             {
-                result = new();
+                if (container.CategoryID == categoryID) result.Add(container);
             }
 
             return result;

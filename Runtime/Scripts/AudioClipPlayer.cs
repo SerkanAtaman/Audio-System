@@ -5,9 +5,18 @@ namespace SeroJob.AudioSystem
 {
     public class AudioClipPlayer : MonoBehaviour
     {
-        public bool UseContainerID = false;
-        public string ContainerID;
-        public AudioClipContainer Container;
+        public enum PlayType
+        {
+            Container = 0,
+            ContainerWithID = 1,
+            RandomByTag = 2
+        }
+
+        public PlayType Type = PlayType.Container;
+
+        public uint[] ContainerIDs;
+        public uint TagID;
+        public AudioClipContainer[] Containers;
 
         public bool SyncAudioSourceTransform = false;
 
@@ -37,7 +46,26 @@ namespace SeroJob.AudioSystem
         {
             if (IsPlaying) return;
 
-            _aliveAudioData = UseContainerID ? AudioSystemManager.Instance.Play(ContainerID) : AudioSystemManager.Instance.Play(Container);
+            switch (Type)
+            {
+                case PlayType.Container:
+                    _aliveAudioData = AudioSystemManager.Instance.Play(Containers.GetRandomElement());
+                    break;
+                case PlayType.ContainerWithID:
+                    _aliveAudioData = AudioSystemManager.Instance.Play(ContainerIDs.GetRandomElement());
+                    break;
+                case PlayType.RandomByTag:
+                    var containers = AudioSystemManager.Instance.Library.GetContainersByTag(TagID);
+                    _aliveAudioData = AudioSystemManager.Instance.Play(containers.GetRandomElement());
+                    break;
+            }
+
+            if (_aliveAudioData == null)
+            {
+                Debug.LogWarning("Failed to play audio clip", gameObject);
+                return;
+            }
+
             AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
 
             if (SyncAudioSourceTransform) StartCoroutine(SyncSourceTransform());

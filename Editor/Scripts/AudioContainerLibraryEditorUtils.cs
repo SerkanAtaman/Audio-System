@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using UnityEditor;
 using UnityEngine;
 
@@ -95,20 +97,56 @@ namespace SeroJob.AudioSystem.Editor
             library.Containers = result;
         }
 
-        public static bool LibraryContainsIdentifier(string identifier)
+        public static bool IsIdentifierValid(uint identifier)
+        {
+            var library = GetLibrary();
+            return library.SameIdentifierCount(identifier) <= 1;
+        }
+
+        public static bool LibraryContainsIdentifier(uint identifier)
         {
             var library = GetLibrary();
             return library.ContainsIdentifier(identifier);
         }
 
-        public static bool ContainsIdentifier(this AudioContainerLibrary library, string identifier)
+        public static bool ContainsIdentifier(this AudioContainerLibrary library, uint identifier)
         {
             foreach (var item in library.Containers)
             {
-                if (string.Equals(identifier, item.Identifier)) return true;
+                if (item.ID == identifier) return true;
             }
 
             return false;
+        }
+
+        public static int SameIdentifierCount(this AudioContainerLibrary library, uint identifier)
+        {
+            int result = 0;
+            foreach (var item in library.Containers)
+            {
+                if (item.ID == identifier) result++;
+            }
+
+            return result;
+        }
+
+        public static uint GenerateUniqueIdentifier()
+        {
+            var randomBytes = new byte[32];
+            bool idGenerated = false;
+            uint result = 0;
+
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                while (!idGenerated)
+                {
+                    rng.GetBytes(randomBytes);
+                    result = BitConverter.ToUInt32(randomBytes, 0);
+                    idGenerated = !LibraryContainsIdentifier(result);
+                }
+            }
+
+            return result;
         }
     }
 }

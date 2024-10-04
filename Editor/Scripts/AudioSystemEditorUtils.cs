@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 namespace SeroJob.AudioSystem.Editor
 {
@@ -55,7 +54,7 @@ namespace SeroJob.AudioSystem.Editor
             fileName = "audioContainer_" + fileName + ".asset";
             var containerPath = Path.Combine(directory, fileName);
             var container = ScriptableObject.CreateInstance<AudioClipContainer>();
-            container.ReceiveEditorData(clip);
+            container.ReceiveEditorData(clip, AudioContainerLibraryEditorUtils.GenerateUniqueIdentifier());
             AssetDatabase.CreateAsset(container, containerPath);
             AudioContainerLibraryEditorUtils.Update(container);
             return container;
@@ -94,6 +93,7 @@ namespace SeroJob.AudioSystem.Editor
 
             var asset = ScriptableObject.CreateInstance<AudioSystemSettings>();
             asset.Categories = new string[0];
+            asset.Tags = new string[0];
 
             AssetDatabase.CreateAsset(asset, path);
             AssetDatabase.SaveAssets();
@@ -105,6 +105,7 @@ namespace SeroJob.AudioSystem.Editor
         public static string[] GetAllCategoryNames()
         {
             var settings = GetSettings();
+            settings.Categories ??= new string[0];
             string[] result = new string[settings.Categories.Length + 1];
 
             for (int i = 0; i < settings.Categories.Length; i++)
@@ -117,15 +118,15 @@ namespace SeroJob.AudioSystem.Editor
             return result;
         }
 
-        public static int GetCategoryNameIndex(string[] categories, string name)
+        public static uint GetCategoryNameIndex(string[] categories, string name)
         {
-            int result = 0;
+            uint result = 0;
 
             for (int i = 0; i < categories.Length; i++)
             {
                 if (string.Equals(categories[i], name))
                 {
-                    result = i;
+                    result = (uint)i;
                     break;
                 }
             }
@@ -133,36 +134,35 @@ namespace SeroJob.AudioSystem.Editor
             return result;
         }
 
-        public static void AddCategory(string categoryName)
+        public static string[] GetAllTagNames()
         {
-            if (string.IsNullOrEmpty(categoryName))
+            var settings = GetSettings();
+            settings.Tags ??= new string[0];
+            string[] result = new string[settings.Tags.Length + 1];
+
+            for (int i = 0; i < settings.Tags.Length; i++)
             {
-                Debug.LogError("Cannot add empty category");
-                return;
+                result[i + 1] = settings.Tags[i];
             }
 
-            var settings = GetSettings();
-            foreach (var category in settings.Categories)
+            result[0] = "None";
+
+            return result;
+        }
+
+        public static uint GetTagNameIndex(string[] tags, string tag)
+        {
+            uint result = 0;
+
+            for (int i = 0; i < tags.Length; i++)
             {
-                if(string.Equals(category, categoryName))
+                if (string.Equals(tags[i], tag))
                 {
-                    Debug.LogError("Given Category: " + categoryName + " is already exist in Audio System");
-                    return;
+                    result = (uint)i;
+                    break;
                 }
             }
 
-            settings.Categories = ExpandCategories(settings, categoryName);
-        }
-
-        private static string[] ExpandCategories(AudioSystemSettings settings, string category)
-        {
-            string[] result = new string[settings.Categories.Length + 1];
-            for (int i = 0; i < settings.Categories.Length; i++)
-            {
-                result[i] = settings.Categories[i];
-            }
-
-            result[^1] = category;
             return result;
         }
     }

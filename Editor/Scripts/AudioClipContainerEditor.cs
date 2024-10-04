@@ -1,4 +1,3 @@
-using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,12 +15,26 @@ namespace SeroJob.AudioSystem.Editor
 
         private void DrawSingleInspector()
         {
-            GUI.enabled = false;
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_identifier"), new GUIContent("Identifier", "The unique identifier of container"));
+            AudioClipContainer audioClipContainer = (AudioClipContainer)target;
 
-            if (string.IsNullOrEmpty(serializedObject.FindProperty("_identifier").stringValue))
-                serializedObject.FindProperty("_identifier").stringValue = Guid.NewGuid().ToString();
+            EditorGUILayout.BeginHorizontal();
+            GUI.enabled = false;
+            AudioContainerLibraryEditorUtils.Update(audioClipContainer);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_id"), new GUIContent("ID", "The unique identifier of container"));
+            if (!AudioContainerLibraryEditorUtils.IsIdentifierValid(serializedObject.FindProperty("_id").uintValue))
+            {
+                serializedObject.FindProperty("_id").uintValue = AudioContainerLibraryEditorUtils.GenerateUniqueIdentifier();
+                AudioContainerLibraryEditorUtils.Update(audioClipContainer);
+            }
+
             GUI.enabled = true;
+
+            if (GUILayout.Button(new GUIContent("Copy ID", "")))
+            {
+                GUIUtility.systemCopyBuffer = serializedObject.FindProperty("_id").uintValue.ToString();
+            }
+
+            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioClip"), new GUIContent("Audio Clip", "The clip that will be played"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_volume"), new GUIContent("Volume", "The volume of the clip"));
@@ -30,8 +43,21 @@ namespace SeroJob.AudioSystem.Editor
             var categories = AudioSystemEditorUtils.GetAllCategoryNames();
 
             var categoryIndex = AudioSystemEditorUtils.GetCategoryNameIndex(categories, serializedObject.FindProperty("_category").stringValue);
-            var selected = EditorGUILayout.Popup(new GUIContent("Category", "The category of the clip"), categoryIndex, categories);
-            serializedObject.FindProperty("_category").stringValue = categories[selected];
+            var selectedCat = EditorGUILayout.Popup(new GUIContent("Category", "The category of the clip"), (int)categoryIndex, categories);
+            serializedObject.FindProperty("_category").stringValue = categories[selectedCat];
+
+            var tags = AudioSystemEditorUtils.GetAllTagNames();
+
+            var tagIndex = AudioSystemEditorUtils.GetTagNameIndex(tags, serializedObject.FindProperty("_tag").stringValue);
+            var selectedTag = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the clip"), (int)tagIndex, tags);
+            serializedObject.FindProperty("_tag").stringValue = tags[selectedTag];
+
+            GUI.enabled = false;
+            serializedObject.FindProperty("_categoryID").uintValue = (uint)selectedCat;
+            serializedObject.FindProperty("_tagID").uintValue = (uint)selectedTag;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_categoryID"), new GUIContent("Category ID", "The int id of the selected category"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_tagID"), new GUIContent("Tag ID", "The int id of the selected tag"));
+            GUI.enabled = true;
 
             EditorGUILayout.Space(10f);
 
@@ -40,14 +66,10 @@ namespace SeroJob.AudioSystem.Editor
                 var wnd = EditorWindow.GetWindow<EditCategoriesWindow>();
                 wnd.titleContent = new GUIContent("Categories Window");
             }
-            if (GUILayout.Button(new GUIContent("Generate ID", "")))
+            if (GUILayout.Button(new GUIContent("Edit Tags", "")))
             {
-                serializedObject.FindProperty("_identifier").stringValue = Guid.NewGuid().ToString();
-                AudioContainerLibraryEditorUtils.Update((AudioClipContainer)target);
-            }
-            if (GUILayout.Button(new GUIContent("Copy ID", "")))
-            {
-                GUIUtility.systemCopyBuffer = serializedObject.FindProperty("_identifier").stringValue;
+                var wnd = EditorWindow.GetWindow<EditTagsWindow>();
+                wnd.titleContent = new GUIContent("Tags Window");
             }
 
             EditorApplication.delayCall += () =>
@@ -65,8 +87,14 @@ namespace SeroJob.AudioSystem.Editor
             var categories = AudioSystemEditorUtils.GetAllCategoryNames();
 
             var categoryIndex = AudioSystemEditorUtils.GetCategoryNameIndex(categories, serializedObject.FindProperty("_category").stringValue);
-            var selected = EditorGUILayout.Popup(new GUIContent("Category", "The category of the clip"), categoryIndex, categories);
+            var selected = EditorGUILayout.Popup(new GUIContent("Category", "The category of the clip"), (int)categoryIndex, categories);
             serializedObject.FindProperty("_category").stringValue = categories[selected];
+
+            var tags = AudioSystemEditorUtils.GetAllTagNames();
+
+            var tagIndex = AudioSystemEditorUtils.GetTagNameIndex(tags, serializedObject.FindProperty("_tag").stringValue);
+            var selectedTag = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the clip"), (int)tagIndex, tags);
+            serializedObject.FindProperty("_tag").stringValue = tags[selectedTag];
 
             EditorApplication.delayCall += () =>
             {
