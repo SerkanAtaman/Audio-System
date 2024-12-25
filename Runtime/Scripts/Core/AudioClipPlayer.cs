@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using SeroJob.FancyAttributes;
+using System.Collections.Generic;
 
 namespace SeroJob.AudioSystem
 {
@@ -22,6 +23,7 @@ namespace SeroJob.AudioSystem
 
         public PlayType Type = PlayType.Container;
         public AutoPlayMode PlayMode = AutoPlayMode.None;
+        public bool AllowSimultaneousPlay = false;
 
         public uint[] ContainerIDs;
         public uint TagID;
@@ -36,13 +38,29 @@ namespace SeroJob.AudioSystem
         {
             get
             {
-                if (_aliveAudioData == null) return false;
+                bool isPlaying = false;
+                foreach (var item in AliveAudioDatas)
+                {
+                    if (!item.HasDied)
+                    {
+                        isPlaying = true;
+                        break;
+                    }
+                }
 
-                return !_aliveAudioData.HasDied;
+                return isPlaying;
             }
         }
 
-        private AliveAudioData _aliveAudioData;
+        public List<AliveAudioData> AliveAudioDatas
+        {
+            get
+            {
+                _aliveAudioDatas ??= new();
+                return _aliveAudioDatas;
+            }
+        }
+        private List<AliveAudioData> _aliveAudioDatas;
 
         private void OnEnable()
         {
@@ -62,86 +80,93 @@ namespace SeroJob.AudioSystem
 
         public void Play()
         {
-            if (IsPlaying) return;
+            if (IsPlaying && !AllowSimultaneousPlay) return;
+
+            AliveAudioData data = null;
 
             switch (Type)
             {
                 case PlayType.Container:
-                    _aliveAudioData = Containers.GetRandomElement().Play();
+                    data = Containers.GetRandomElement().Play();
                     break;
                 case PlayType.ContainerWithID:
-                    _aliveAudioData = AudioSystemManager.Instance.Play(ContainerIDs.GetRandomElement());
+                    data = AudioSystemManager.Instance.Play(ContainerIDs.GetRandomElement());
                     break;
                 case PlayType.RandomByTag:
                     var containers = AudioSystemManager.Instance.Library.GetContainersByTag(TagID);
-                    _aliveAudioData = containers.GetRandomElement().Play();
+                    data = containers.GetRandomElement().Play();
                     break;
             }
 
-            if (_aliveAudioData == null)
+            if (data == null)
             {
                 Debug.LogWarning("Failed to play audio clip", gameObject);
                 return;
             }
 
+            AliveAudioDatas.Add(data);
+
             if (Effects != null)
             {
                 foreach (var effect in Effects)
                 {
-                    effect.Apply(_aliveAudioData.Container);
+                    effect.Apply(data.Container);
                 }
             }
 
-            AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
+            if (AliveAudioDatas.Count < 2) AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
 
             if (SyncAudioSourceTransform) StartCoroutine(SyncSourceTransform());
         }
 
         public void Pause()
         {
-            if (_aliveAudioData == null) return;
-
-            _aliveAudioData.Pause();
+            foreach (var item in AliveAudioDatas)
+            {
+                item.Pause();
+            }
         }
 
         public void Resume()
         {
-            if (_aliveAudioData == null) return;
-
-            _aliveAudioData.Resume();
+            foreach (var item in AliveAudioDatas)
+            {
+                item.Resume();
+            }
         }
 
         public void Stop()
         {
-            if (_aliveAudioData == null) return;
+            AudioSystemManager.Instance.OnAudioDied -= OnAudioDied;
 
-            if (Effects != null)
+            foreach (var item in AliveAudioDatas)
             {
                 foreach (var effect in Effects)
                 {
-                    effect.Remove(_aliveAudioData.Container);
+                    effect.Remove(item.Container);
                 }
+                item.Stop();
             }
 
-            _aliveAudioData.Stop();
+            AliveAudioDatas.Clear();
         }
 
         private void OnAudioDied(AliveAudioData aliveAudioData)
         {
-            AudioSystemManager.Instance.OnAudioDied -= OnAudioDied;
+            if (AliveAudioDatas.Contains(aliveAudioData))
+                AliveAudioDatas.Remove(aliveAudioData);
 
-            if (_aliveAudioData == null) return;
-            if(_aliveAudioData == aliveAudioData)
-            {
-                _aliveAudioData = null;
-            }
+            if (AliveAudioDatas.Count < 1) AudioSystemManager.Instance.OnAudioDied -= OnAudioDied;
         }
 
         private IEnumerator SyncSourceTransform()
         {
-            while(_aliveAudioData != null)
+            while(AliveAudioDatas.Count > 0)
             {
-                _aliveAudioData.Source.transform.position = transform.position;
+                foreach (var item in AliveAudioDatas)
+                {
+                    item.Source.transform.position = transform.position;
+                }
 
                 yield return null;
             }

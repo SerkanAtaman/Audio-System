@@ -56,8 +56,11 @@ namespace SeroJob.AudioSystem.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Effects"),
                 new GUIContent("Effects", "Add any amount of audio clip effect you wish to apply when this player starts playing"));
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("SyncAudioSourceTransform"), 
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("SyncAudioSourceTransform"),
                 new GUIContent("Sync Audio Source Transform", "Decide whether the audio source that will be used to play this clip should be in the same position with this player"));
+
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("AllowSimultaneousPlay"), 
+                new GUIContent("Allow Simultaneous Play", "Whether the player should play multiple clips simultaneously or play them on after another"));
 
             EditorGUILayout.Space(10);
 
