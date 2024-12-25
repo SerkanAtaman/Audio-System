@@ -9,7 +9,8 @@ namespace SeroJob.AudioSystem
         [SerializeField] private AudioClip _audioClip;
         [SerializeField] private string _category;
         [SerializeField] private string _tag;
-        [SerializeField, Range(0f, 1f)] private float _volume = 1f;
+        [SerializeField, Range(0f, 1f)] private float _currentVolume = 1f;
+        [SerializeField, Range(0f, 1f)] private float _maxVolume = 1f;
         [SerializeField] private bool _loop = false;
         [SerializeField] private uint _categoryID;
         [SerializeField] private uint _tagID;
@@ -18,10 +19,20 @@ namespace SeroJob.AudioSystem
         public AudioClip AudioClip => _audioClip;
         public string Category => _category;
         public string Tag => _tag;
-        public float Volume => _volume;
+        public float MaxVolume => _maxVolume;
         public bool Loop => _loop;
         public uint CategoryID => _categoryID;
         public uint TagID => _tagID;
+
+        public float CurrentVolume
+        {
+            get => _currentVolume;
+            set
+            {
+                _currentVolume = Mathf.Clamp01(value);
+                this.RefreshVolume();
+            }
+        }
 
         #region EDITOR
 #if UNITY_EDITOR
@@ -30,7 +41,7 @@ namespace SeroJob.AudioSystem
             _audioClip = audioClip;
             _category = "None";
             _tag = "None";
-            _volume = 1f;
+            _maxVolume = 1f;
             _loop = false;
             _id = id;
         }

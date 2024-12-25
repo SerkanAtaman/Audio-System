@@ -65,8 +65,14 @@ namespace SeroJob.AudioSystem
             _deadAudioData.Clear();
         }
 
+        private void OnEnable()
+        {
+            Settings.OnUpdated += OnSettingsUpdated;
+        }
+
         private void OnDisable()
         {
+            Settings.OnUpdated -= OnSettingsUpdated;
             KillAll();
         }
 
@@ -94,6 +100,14 @@ namespace SeroJob.AudioSystem
             DontDestroyOnLoad(gameObject);
         }
 
+        private void OnSettingsUpdated(AudioSystemSettings settings)
+        {
+            foreach (var aliveData in _aliveAudioData)
+            {
+                aliveData.Container.RefreshVolume(settings);
+            }
+        }
+
         public AliveAudioData Play(AudioClipContainer container)
         {
             if (container == null) return null;
@@ -101,13 +115,16 @@ namespace SeroJob.AudioSystem
             var source = _audioSourcePool.Pull();
             source.clip = container.AudioClip;
             source.transform.localPosition = Vector3.zero;
-            source.volume = container.Volume;
+            source.volume = 1f;
             source.loop = container.Loop;
             source.gameObject.SetActive(true);
-            source.Play();
 
             var aliveData = new AliveAudioData(container, source);
             _aliveAudioData.Add(aliveData);
+
+            container.RefreshVolume(Settings);
+            source.Play();
+
             return aliveData;
         }
 
@@ -155,6 +172,19 @@ namespace SeroJob.AudioSystem
                 Stop(aliveData);
             }
             _aliveAudioData.Clear();
+        }
+
+        public List<AliveAudioData> GetAliveDatas(AudioClipContainer container)
+        {
+            var result = new List<AliveAudioData>();
+            if (_aliveAudioData == null) return result;
+
+            foreach (var aliveData in _aliveAudioData)
+            {
+                if (aliveData.Container.ID == container.ID) result.Add(aliveData);
+            }
+
+            return result;
         }
 
         private AudioContainerLibrary GetLibrary()

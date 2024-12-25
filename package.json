@@ -1,11 +1,14 @@
 {
   "name": "serojob-audio-system",
-  "version": "1.2.1",
+  "version": "1.3.1",
   "displayName": "Audio System",
   "description": "Simple Auido Clip Playing System",
   "unity": "2021.3",
   "unityRelease": "0b5",
-  "dependencies": {},
+  "dependencies": {
+    "serojob-fancy-attributes": "https://github.com/SerkanAtaman/Fancy-Attributes.git",
+    "com.serojob.objectpool": "https://github.com/SerkanAtaman/Object-Pooling-System.git"
+  },
   "author": {
     "name": "Serkan Ataman",
     "email": "serkanataman66@gmail.com",

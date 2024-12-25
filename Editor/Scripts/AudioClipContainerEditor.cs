@@ -37,7 +37,21 @@ namespace SeroJob.AudioSystem.Editor
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioClip"), new GUIContent("Audio Clip", "The clip that will be played"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_volume"), new GUIContent("Volume", "The volume of the clip"));
+
+            EditorGUI.BeginChangeCheck();
+
+            var currentVolumeProperty = serializedObject.FindProperty("_currentVolume");
+            var maxVolumeProperty = serializedObject.FindProperty("_maxVolume");
+
+            EditorGUILayout.PropertyField(currentVolumeProperty, new GUIContent("Volume", "The volume of the clip"));
+            EditorGUILayout.PropertyField(maxVolumeProperty, new GUIContent("Max Volume", "The max possible volume of the clip"));
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (currentVolumeProperty.floatValue >= maxVolumeProperty.floatValue) currentVolumeProperty.floatValue = maxVolumeProperty.floatValue;
+                if (Application.isPlaying) audioClipContainer.RefreshVolume(AudioSystemEditorUtils.GetSettings());
+            }
+
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"), new GUIContent("Loop", "Wheter the clip should be looped or not"));
 
             var categories = AudioSystemEditorUtils.GetAllCategoryNames();
@@ -53,7 +67,12 @@ namespace SeroJob.AudioSystem.Editor
             serializedObject.FindProperty("_tag").stringValue = tags[selectedTag];
 
             GUI.enabled = false;
-            serializedObject.FindProperty("_categoryID").uintValue = (uint)selectedCat;
+            var selectedCategory = AudioSystemEditorUtils.GetCategoryByName(categories[selectedCat]);
+            if (selectedCategory != null)
+                serializedObject.FindProperty("_categoryID").uintValue = selectedCategory.Value.ID;
+            else
+                serializedObject.FindProperty("_categoryID").uintValue = 0;
+
             serializedObject.FindProperty("_tagID").uintValue = (uint)selectedTag;
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_categoryID"), new GUIContent("Category ID", "The int id of the selected category"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_tagID"), new GUIContent("Tag ID", "The int id of the selected tag"));

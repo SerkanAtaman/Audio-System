@@ -22,6 +22,7 @@ namespace SeroJob.AudioSystem.Editor
             AudioClipPlayer player = (AudioClipPlayer)target;
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Type"), new GUIContent("Play Type", "Decide how this audio player chooses it's container to use"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("PlayMode"), new GUIContent("Play Mode", "Decide if this player should start playing automatically"));
 
             var typeEnumIndex = serializedObject.FindProperty("Type").enumValueIndex;
 
@@ -51,6 +52,9 @@ namespace SeroJob.AudioSystem.Editor
                 var selectedTag = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the container"), (int)tagID, tags);
                 serializedObject.FindProperty("TagID").uintValue = (uint)selectedTag;
             }
+
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("Effects"),
+                new GUIContent("Effects", "Add any amount of audio clip effect you wish to apply when this player starts playing"));
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("SyncAudioSourceTransform"), 
                 new GUIContent("Sync Audio Source Transform", "Decide whether the audio source that will be used to play this clip should be in the same position with this player"));

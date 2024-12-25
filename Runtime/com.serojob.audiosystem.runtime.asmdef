@@ -2,7 +2,9 @@
     "name": "serojob-audio-system-runtime",
     "rootNamespace": "",
     "references": [
-        "com.serojob.objectpool.runtime"
+        "com.serojob.objectpool.runtime",
+        "com.serojob.fancyattributes.core",
+        "DOTween.Modules"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

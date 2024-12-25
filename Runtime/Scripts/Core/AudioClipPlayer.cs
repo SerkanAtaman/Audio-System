@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using SeroJob.FancyAttributes;
 
 namespace SeroJob.AudioSystem
 {
@@ -12,11 +13,22 @@ namespace SeroJob.AudioSystem
             RandomByTag = 2
         }
 
+        public enum AutoPlayMode
+        {
+            None = 0,
+            OnEnable = 1,
+            OnStart = 2
+        }
+
         public PlayType Type = PlayType.Container;
+        public AutoPlayMode PlayMode = AutoPlayMode.None;
 
         public uint[] ContainerIDs;
         public uint TagID;
         public AudioClipContainer[] Containers;
+
+        [ChildReferenceDropdown(typeof(AudioClipEffect))]
+        [SerializeReference] public AudioClipEffect[] Effects;
 
         public bool SyncAudioSourceTransform = false;
 
@@ -35,6 +47,12 @@ namespace SeroJob.AudioSystem
         private void OnEnable()
         {
             Stop();
+            if (PlayMode == AutoPlayMode.OnEnable) Play();
+        }
+
+        private void Start()
+        {
+            if (PlayMode == AutoPlayMode.OnStart) Play();
         }
 
         private void OnDisable()
@@ -49,14 +67,14 @@ namespace SeroJob.AudioSystem
             switch (Type)
             {
                 case PlayType.Container:
-                    _aliveAudioData = AudioSystemManager.Instance.Play(Containers.GetRandomElement());
+                    _aliveAudioData = Containers.GetRandomElement().Play();
                     break;
                 case PlayType.ContainerWithID:
                     _aliveAudioData = AudioSystemManager.Instance.Play(ContainerIDs.GetRandomElement());
                     break;
                 case PlayType.RandomByTag:
                     var containers = AudioSystemManager.Instance.Library.GetContainersByTag(TagID);
-                    _aliveAudioData = AudioSystemManager.Instance.Play(containers.GetRandomElement());
+                    _aliveAudioData = containers.GetRandomElement().Play();
                     break;
             }
 
@@ -64,6 +82,14 @@ namespace SeroJob.AudioSystem
             {
                 Debug.LogWarning("Failed to play audio clip", gameObject);
                 return;
+            }
+
+            if (Effects != null)
+            {
+                foreach (var effect in Effects)
+                {
+                    effect.Apply(_aliveAudioData.Container);
+                }
             }
 
             AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
@@ -75,21 +101,29 @@ namespace SeroJob.AudioSystem
         {
             if (_aliveAudioData == null) return;
 
-            AudioSystemManager.Instance.Pause(_aliveAudioData);
+            _aliveAudioData.Pause();
         }
 
         public void Resume()
         {
             if (_aliveAudioData == null) return;
 
-            AudioSystemManager.Instance.Resume(_aliveAudioData);
+            _aliveAudioData.Resume();
         }
 
         public void Stop()
         {
             if (_aliveAudioData == null) return;
 
-            AudioSystemManager.Instance.Stop(_aliveAudioData);
+            if (Effects != null)
+            {
+                foreach (var effect in Effects)
+                {
+                    effect.Remove(_aliveAudioData.Container);
+                }
+            }
+
+            _aliveAudioData.Stop();
         }
 
         private void OnAudioDied(AliveAudioData aliveAudioData)

@@ -92,7 +92,7 @@ namespace SeroJob.AudioSystem.Editor
             if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
             var asset = ScriptableObject.CreateInstance<AudioSystemSettings>();
-            asset.Categories = new string[0];
+            asset.Categories = new AudioCategory[0];
             asset.Tags = new string[0];
 
             AssetDatabase.CreateAsset(asset, path);
@@ -105,17 +105,28 @@ namespace SeroJob.AudioSystem.Editor
         public static string[] GetAllCategoryNames()
         {
             var settings = GetSettings();
-            settings.Categories ??= new string[0];
+            settings.Categories ??= new AudioCategory[0];
             string[] result = new string[settings.Categories.Length + 1];
 
             for (int i = 0; i < settings.Categories.Length; i++)
             {
-                result[i + 1] = settings.Categories[i];
+                result[i + 1] = settings.Categories[i].Name;
             }
 
             result[0] = "None";
 
             return result;
+        }
+
+        public static AudioCategory? GetCategoryByName(string name)
+        {
+            var settings = GetSettings();
+            foreach (var category in settings.Categories)
+            {
+                if (string.Equals(category.Name, name)) return category;
+            }
+
+            return null;
         }
 
         public static uint GetCategoryNameIndex(string[] categories, string name)
