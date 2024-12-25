@@ -69,6 +69,11 @@ namespace SeroJob.AudioSystem
             return container.Pitch;
         }
 
+        public static AudioClipContainer GetContainerByID(uint containerID)
+        {
+            return AudioSystemManager.Instance.Library.GetContainerFromID(containerID);
+        }
+
         public static AliveAudioData Play(this AudioClipContainer container)
         {
             return AudioSystemManager.Instance.Play(container);

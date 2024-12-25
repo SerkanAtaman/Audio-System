@@ -108,7 +108,9 @@ namespace SeroJob.AudioSystem.Editor
 
         private void DrawMultipleInspectors()
         {
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_volume"), new GUIContent("Volume", "The volume of the clip"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_currentVolume"), new GUIContent("Volume", "The volume of the clip"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_maxVolume"), new GUIContent("Max Volume", "The max possible volume of the clip"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_pitch"), new GUIContent("Pitch", "The default pitch of the clip"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"), new GUIContent("Loop", "Wheter the clip should be looped or not"));
 
             var categories = AudioSystemEditorUtils.GetAllCategoryNames();

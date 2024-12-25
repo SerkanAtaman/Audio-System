@@ -24,6 +24,8 @@ namespace SeroJob.AudioSystem
         public PlayType Type = PlayType.Container;
         public AutoPlayMode PlayMode = AutoPlayMode.None;
         public bool AllowSimultaneousPlay = false;
+        public bool ChooseClipsRespectively = false;
+        public bool SyncAudioSourceTransform = false;
 
         public uint[] ContainerIDs;
         public uint TagID;
@@ -31,8 +33,6 @@ namespace SeroJob.AudioSystem
 
         [ChildReferenceDropdown(typeof(AudioClipEffect))]
         [SerializeReference] public AudioClipEffect[] Effects;
-
-        public bool SyncAudioSourceTransform = false;
 
         public bool IsPlaying
         {
@@ -62,6 +62,8 @@ namespace SeroJob.AudioSystem
         }
         private List<AliveAudioData> _aliveAudioDatas;
 
+        private List<AudioClipContainer> _respectiveContainers = null;
+
         private void OnEnable()
         {
             Stop();
@@ -82,28 +84,15 @@ namespace SeroJob.AudioSystem
         {
             if (IsPlaying && !AllowSimultaneousPlay) return;
 
-            AliveAudioData data = null;
+            var container = GetContainerToPlay();
 
-            switch (Type)
+            if (container == null)
             {
-                case PlayType.Container:
-                    data = Containers.GetRandomElement().Play();
-                    break;
-                case PlayType.ContainerWithID:
-                    data = AudioSystemManager.Instance.Play(ContainerIDs.GetRandomElement());
-                    break;
-                case PlayType.RandomByTag:
-                    var containers = AudioSystemManager.Instance.Library.GetContainersByTag(TagID);
-                    data = containers.GetRandomElement().Play();
-                    break;
-            }
-
-            if (data == null)
-            {
-                Debug.LogWarning("Failed to play audio clip", gameObject);
+                Debug.LogWarning("Failed to get container to play", gameObject);
                 return;
             }
 
+            var data = container.Play();
             AliveAudioDatas.Add(data);
 
             if (Effects != null)
@@ -149,6 +138,47 @@ namespace SeroJob.AudioSystem
             }
 
             AliveAudioDatas.Clear();
+            _respectiveContainers?.Clear();
+            _respectiveContainers = null;
+        }
+
+        private AudioClipContainer GetContainerToPlay()
+        {
+            AudioClipContainer container = null;
+
+            switch (Type)
+            {
+                case PlayType.Container:
+                    if (!ChooseClipsRespectively)
+                    {
+                        container = Containers.GetRandomElement();
+                    }
+                    else
+                    {
+                        container = GetContainerRespectively();
+                    }
+                    break;
+                case PlayType.ContainerWithID:
+                    container = AudioSystemUtils.GetContainerByID(ContainerIDs.GetRandomElement());
+                    break;
+                case PlayType.RandomByTag:
+                    var containers = AudioSystemManager.Instance.Library.GetContainersByTag(TagID);
+                    container = containers.GetRandomElement();
+                    break;
+            }
+
+            return container;
+        }
+
+        private AudioClipContainer GetContainerRespectively()
+        {
+            _respectiveContainers ??= new(Containers);
+
+            if (_respectiveContainers.Count == 0) _respectiveContainers.AddRange(Containers);
+
+            var result = _respectiveContainers[0];
+            _respectiveContainers.RemoveAt(0);
+            return result;
         }
 
         private void OnAudioDied(AliveAudioData aliveAudioData)

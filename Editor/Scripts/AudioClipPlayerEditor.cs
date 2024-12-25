@@ -59,8 +59,14 @@ namespace SeroJob.AudioSystem.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("SyncAudioSourceTransform"),
                 new GUIContent("Sync Audio Source Transform", "Decide whether the audio source that will be used to play this clip should be in the same position with this player"));
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("AllowSimultaneousPlay"), 
+            var allowSimultaneousPlayProperty = serializedObject.FindProperty("AllowSimultaneousPlay");
+            EditorGUILayout.PropertyField(allowSimultaneousPlayProperty, 
                 new GUIContent("Allow Simultaneous Play", "Whether the player should play multiple clips simultaneously or play them on after another"));
+            if (allowSimultaneousPlayProperty.boolValue)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("ChooseClipsRespectively"),
+                new GUIContent("Choose Clips Respectively", "Decide whether the clips from collection should be choosen randomly or respectively"));
+            }
 
             EditorGUILayout.Space(10);
 
