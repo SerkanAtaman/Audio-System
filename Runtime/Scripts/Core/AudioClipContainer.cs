@@ -11,6 +11,7 @@ namespace SeroJob.AudioSystem
         [SerializeField] private string _tag;
         [SerializeField, Range(0f, 1f)] private float _currentVolume = 1f;
         [SerializeField, Range(0f, 1f)] private float _maxVolume = 1f;
+        [SerializeField, Range(-3f, 3f)] private float _pitch = 1f;
         [SerializeField] private bool _loop = false;
         [SerializeField] private uint _categoryID;
         [SerializeField] private uint _tagID;
@@ -31,6 +32,19 @@ namespace SeroJob.AudioSystem
             {
                 _currentVolume = Mathf.Clamp01(value);
                 this.RefreshVolume();
+            }
+        }
+
+        public float Pitch
+        {
+            get
+            {
+                return _pitch;
+            }
+            set
+            {
+                _pitch = Mathf.Clamp(value, -3f, 3f);
+                this.RefreshPitch();
             }
         }
 

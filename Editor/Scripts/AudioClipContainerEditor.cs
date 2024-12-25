@@ -52,6 +52,14 @@ namespace SeroJob.AudioSystem.Editor
                 if (Application.isPlaying) audioClipContainer.RefreshVolume(AudioSystemEditorUtils.GetSettings());
             }
 
+            EditorGUI.BeginChangeCheck();
+            var pitchProperty = serializedObject.FindProperty("_pitch");
+            EditorGUILayout.PropertyField(pitchProperty, new GUIContent("Pitch", "The default pitch of the clip"));
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (Application.isPlaying) audioClipContainer.RefreshPitch();
+            }
+            
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"), new GUIContent("Loop", "Wheter the clip should be looped or not"));
 
             var categories = AudioSystemEditorUtils.GetAllCategoryNames();

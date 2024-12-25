@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -54,6 +55,18 @@ namespace SeroJob.AudioSystem
             volume *= settings.MasterVolumeMultiplier;
             container.SetPlaybackVolume(volume);
             return volume;
+        }
+
+        public static float RefreshPitch(this AudioClipContainer container)
+        {
+            var alives = AudioSystemManager.Instance.GetAliveDatas(container);
+
+            foreach (var alive in alives)
+            {
+                alive.Source.pitch = container.Pitch;
+            }
+
+            return container.Pitch;
         }
 
         public static AliveAudioData Play(this AudioClipContainer container)
