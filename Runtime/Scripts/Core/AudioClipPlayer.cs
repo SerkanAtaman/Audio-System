@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using SeroJob.FancyAttributes;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 namespace SeroJob.AudioSystem
 {
@@ -21,36 +22,32 @@ namespace SeroJob.AudioSystem
             OnStart = 2
         }
 
+        public enum State
+        {
+            Idle = 0,
+            Playing = 1,
+            Paused = 2
+        }
+
         public PlayType Type = PlayType.Container;
         public AutoPlayMode PlayMode = AutoPlayMode.None;
         public bool AllowSimultaneousPlay = false;
         public bool ChooseClipsRespectively = false;
         public bool SyncAudioSourceTransform = false;
+        public bool DestroyPlayerWhenStopped = false;
 
         public uint[] ContainerIDs;
         public uint TagID;
         public AudioClipContainer[] Containers;
 
+        public UnityEvent<State> OnStateUpdated;
+
         [ChildReferenceDropdown(typeof(AudioClipEffect))]
         [SerializeReference] public AudioClipEffect[] Effects;
 
-        public bool IsPlaying
-        {
-            get
-            {
-                bool isPlaying = false;
-                foreach (var item in AliveAudioDatas)
-                {
-                    if (!item.HasDied)
-                    {
-                        isPlaying = true;
-                        break;
-                    }
-                }
+        [SerializeField] private State _state;
 
-                return isPlaying;
-            }
-        }
+        public State CurrentState => _state;
 
         public List<AliveAudioData> AliveAudioDatas
         {
@@ -66,7 +63,7 @@ namespace SeroJob.AudioSystem
 
         private void OnEnable()
         {
-            Stop();
+            Stop(false);
             if (PlayMode == AutoPlayMode.OnEnable) Play();
         }
 
@@ -82,7 +79,7 @@ namespace SeroJob.AudioSystem
 
         public void Play()
         {
-            if (IsPlaying && !AllowSimultaneousPlay) return;
+            if (_state != State.Idle && !AllowSimultaneousPlay) return;
 
             var container = GetContainerToPlay();
 
@@ -103,13 +100,16 @@ namespace SeroJob.AudioSystem
                 }
             }
 
-            if (AliveAudioDatas.Count < 2) AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
+            SetState(State.Playing);
 
+            if (AliveAudioDatas.Count < 2) AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
             if (SyncAudioSourceTransform) StartCoroutine(SyncSourceTransform());
         }
 
         public void Pause()
         {
+            SetState(State.Paused);
+
             foreach (var item in AliveAudioDatas)
             {
                 item.Pause();
@@ -118,13 +118,14 @@ namespace SeroJob.AudioSystem
 
         public void Resume()
         {
+            SetState(State.Playing);
             foreach (var item in AliveAudioDatas)
             {
                 item.Resume();
             }
         }
 
-        public void Stop()
+        public void Stop(bool canDestroy = true)
         {
             AudioSystemManager.Instance.OnAudioDied -= OnAudioDied;
 
@@ -140,6 +141,17 @@ namespace SeroJob.AudioSystem
             AliveAudioDatas.Clear();
             _respectiveContainers?.Clear();
             _respectiveContainers = null;
+            SetState(State.Idle);
+
+            if (DestroyPlayerWhenStopped && canDestroy) Destroy(gameObject);
+        }
+
+        private void SetState(State state)
+        {
+            if (_state == state) return;
+
+            _state = state;
+            OnStateUpdated?.Invoke(state);
         }
 
         private AudioClipContainer GetContainerToPlay()
@@ -186,7 +198,7 @@ namespace SeroJob.AudioSystem
             if (AliveAudioDatas.Contains(aliveAudioData))
                 AliveAudioDatas.Remove(aliveAudioData);
 
-            if (AliveAudioDatas.Count < 1) AudioSystemManager.Instance.OnAudioDied -= OnAudioDied;
+            if (AliveAudioDatas.Count < 1) Stop();
         }
 
         private IEnumerator SyncSourceTransform()

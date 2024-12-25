@@ -8,6 +8,7 @@ namespace SeroJob.AudioSystem.Editor
     {
         private double _lastIdentifierCheckTime;
         private bool _lastIdentifierValidationResult;
+        private bool _eventsFoldout = false;
 
         public override UnityEngine.UIElements.VisualElement CreateInspectorGUI()
         {
@@ -56,6 +57,14 @@ namespace SeroJob.AudioSystem.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Effects"),
                 new GUIContent("Effects", "Add any amount of audio clip effect you wish to apply when this player starts playing"));
 
+            //Events
+            _eventsFoldout = EditorGUILayout.Foldout(_eventsFoldout, new GUIContent("Events"));
+            if (_eventsFoldout)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnStateUpdated"),
+                new GUIContent("On State Updated", "Called every time the state of the player is changed"));
+            }
+
             EditorGUILayout.PropertyField(serializedObject.FindProperty("SyncAudioSourceTransform"),
                 new GUIContent("Sync Audio Source Transform", "Decide whether the audio source that will be used to play this clip should be in the same position with this player"));
 
@@ -68,10 +77,14 @@ namespace SeroJob.AudioSystem.Editor
                 new GUIContent("Choose Clips Respectively", "Decide whether the clips from collection should be choosen randomly or respectively"));
             }
 
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("DestroyPlayerWhenStopped"),
+                new GUIContent("Destroy Player When Stopped", "Decide if the player gameobject should be destroyed when it's clip is stopped playing"));
+
             EditorGUILayout.Space(10);
 
             GUI.enabled = false;
-            EditorGUILayout.TextField("Is Playing", player.IsPlaying.ToString());
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_state"),
+                new GUIContent("Current State"));
             GUI.enabled = true;
 
             EditorGUILayout.Space(10);

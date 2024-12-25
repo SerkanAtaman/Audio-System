@@ -79,6 +79,20 @@ namespace SeroJob.AudioSystem
             return AudioSystemManager.Instance.Play(container);
         }
 
+        public static AliveAudioData Play(this AudioClipContainer container, IEnumerable<AudioClipEffect> effects)
+        {
+            var data = AudioSystemManager.Instance.Play(container);
+
+            if (effects == null) return data;
+
+            foreach (var effect in effects)
+            {
+                effect.Apply(container);
+            }
+
+            return data;
+        }
+
         public static void Pause(this AliveAudioData aliveAudioData)
         {
             AudioSystemManager.Instance.Pause(aliveAudioData);
