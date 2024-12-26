@@ -16,6 +16,7 @@ namespace SeroJob.AudioSystem
         public float PauseStartTime { get; private set; }
         public bool IsPaused { get; private set; }
         public bool IsDisposed { get; private set; }
+        public bool IsSourceCustom { get; private set; }
 
         public bool HasDied
         {
@@ -28,7 +29,7 @@ namespace SeroJob.AudioSystem
             }
         }
 
-        public AliveAudioData(AudioClipContainer container, AudioSource source)
+        public AliveAudioData(AudioClipContainer container, AudioSource source, bool isSourceCustom)
         {
             PlayerInstanceId = 0;
             Container = container;
@@ -38,6 +39,7 @@ namespace SeroJob.AudioSystem
             IsPaused = false;
             TotalPauseTime = 0f;
             IsDisposed = false;
+            IsSourceCustom = isSourceCustom;
         }
 
         public void Pause()

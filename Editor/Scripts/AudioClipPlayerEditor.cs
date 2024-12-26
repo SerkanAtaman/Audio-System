@@ -33,8 +33,10 @@ namespace SeroJob.AudioSystem.Editor
                 player.Volume = volumeProperty.floatValue;
             }
 
-            var typeEnumIndex = serializedObject.FindProperty("Type").enumValueIndex;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("CustomAudioSource"),
+                    new GUIContent("Custom Audio Source", "The audio source that will be playing the container"));
 
+            var typeEnumIndex = serializedObject.FindProperty("Type").enumValueIndex;
             if (typeEnumIndex == 0) // Container
             {
                 serializedObject.FindProperty("ContainerIDs").ClearArray();

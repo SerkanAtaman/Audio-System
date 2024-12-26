@@ -121,11 +121,28 @@ namespace SeroJob.AudioSystem
             source.spatialBlend = container.SpatialBlend;
             source.gameObject.SetActive(true);
 
-            var aliveData = new AliveAudioData(container, source);
+            var aliveData = new AliveAudioData(container, source, false);
             _aliveAudioData.Add(aliveData);
 
             container.RefreshVolume(Settings);
             source.Play();
+
+            return aliveData;
+        }
+
+        public AliveAudioData Play(AudioClipContainer container, AudioSource audioSource)
+        {
+            if (container == null) return null;
+            if (audioSource == null) return null;
+
+            audioSource.clip = container.AudioClip;
+            audioSource.gameObject.SetActive(true);
+
+            var aliveData = new AliveAudioData(container, audioSource, true);
+            _aliveAudioData.Add(aliveData);
+
+            container.RefreshVolume(Settings);
+            audioSource.Play();
 
             return aliveData;
         }
@@ -143,7 +160,8 @@ namespace SeroJob.AudioSystem
             if (aliveAudioData.IsDisposed) return;
             aliveAudioData.Source.clip = null;
             aliveAudioData.Source.Stop();
-            _audioSourcePool.PushItem(aliveAudioData.Source.gameObject, !aliveAudioData.Source.transform.IsChildOf(transform));
+            if (!aliveAudioData.IsSourceCustom)
+                _audioSourcePool.PushItem(aliveAudioData.Source.gameObject, !aliveAudioData.Source.transform.IsChildOf(transform));
 
             OnAudioDied?.Invoke(aliveAudioData);
             

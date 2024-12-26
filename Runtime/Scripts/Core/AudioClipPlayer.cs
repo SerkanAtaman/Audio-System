@@ -12,7 +12,7 @@ namespace SeroJob.AudioSystem
         {
             Container = 0,
             ContainerWithID = 1,
-            RandomByTag = 2
+            RandomByTag = 2,
         }
 
         public enum AutoPlayMode
@@ -39,6 +39,7 @@ namespace SeroJob.AudioSystem
         public uint[] ContainerIDs;
         public uint TagID;
         public AudioClipContainer[] Containers;
+        public AudioSource CustomAudioSource;
 
         public UnityEvent<State> OnStateUpdated;
 
@@ -108,7 +109,7 @@ namespace SeroJob.AudioSystem
                 return;
             }
 
-            var data = container.Play();
+            var data = container.Play(CustomAudioSource);
             data.PlayerInstanceId = gameObject.GetInstanceID();
             AliveAudioDatas.Add(data);
 
