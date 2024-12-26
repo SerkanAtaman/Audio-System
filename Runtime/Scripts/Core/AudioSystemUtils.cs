@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace SeroJob.AudioSystem
 {
@@ -41,32 +42,43 @@ namespace SeroJob.AudioSystem
             return null;
         }
 
-        public static float RefreshVolume(this AudioClipContainer container, AudioSystemSettings settings = null)
+        public static void RefreshAliveDatas(this AudioClipContainer container, AudioSystemSettings settings = null)
+        {
+            var volume = GetTargetVolume(container);
+            var alives = container.GetAllAliveAudioData();
+            if (alives == null) return;
+
+            foreach (var alive in alives)
+            {
+                alive.Source.volume = volume;
+                alive.Source.loop = container.Loop;
+                alive.Source.playOnAwake = false;
+                alive.Source.pitch = container.Pitch;
+                alive.Source.spatialBlend = container.SpatialBlend;
+            }
+        }
+
+        public static void Refresh(this AliveAudioData aliveAudioData, AudioSystemSettings settings = null)
+        {
+            var volume = GetTargetVolume(aliveAudioData.Container);
+
+            aliveAudioData.Source.volume = volume;
+            aliveAudioData.Source.loop = aliveAudioData.Container.Loop;
+            aliveAudioData.Source.playOnAwake = false;
+            aliveAudioData.Source.pitch = aliveAudioData.Container.Pitch;
+            aliveAudioData.Source.spatialBlend = aliveAudioData.Container.SpatialBlend;
+        }
+
+        public static float GetTargetVolume(this AudioClipContainer container, AudioSystemSettings settings = null)
         {
             if (settings == null) settings = AudioSystemManager.Instance.Settings;
             var category = settings.GetCategoryByID(container.CategoryID);
-            var volume = container.CurrentVolume;
+            var volume = container.BaseVolume;
             if (category != null)
             {
                 volume *= category.Value.Volume;
             }
 
-            volume = Mathf.Clamp(volume, 0f, container.MaxVolume);
-            volume *= settings.MasterVolumeMultiplier;
-            container.SetPlaybackVolume(volume);
-            return volume;
-        }
-        
-        public static float GetTargetVolume(this AudioClipPlayer audioClipPlayer, AliveAudioData aliveAudioData, AudioSystemSettings settings = null)
-        {
-            if (settings == null) settings = AudioSystemManager.Instance.Settings;
-            var category = settings.GetCategoryByID(aliveAudioData.Container.CategoryID);
-            var volume = audioClipPlayer.Volume;
-            if (category != null)
-            {
-                volume *= category.Value.Volume;
-            }
-            volume = Mathf.Clamp(volume, 0f, aliveAudioData.Container.MaxVolume);
             volume *= settings.MasterVolumeMultiplier;
             return volume;
         }
@@ -77,6 +89,11 @@ namespace SeroJob.AudioSystem
             if (alives.Count == 0) return null;
 
             return alives[^1];
+        }
+
+        public static List<AliveAudioData> GetAllAliveAudioData(this AudioClipContainer container)
+        {
+            return AudioSystemManager.Instance.GetAliveDatas(container);
         }
 
         public static AudioClipContainer GetContainerByID(uint containerID)
@@ -118,17 +135,6 @@ namespace SeroJob.AudioSystem
         public static void Stop(this AliveAudioData aliveAudioData)
         {
             AudioSystemManager.Instance.Stop(aliveAudioData);
-        }
-
-        public static void SetPlaybackVolume(this AudioClipContainer container, float value)
-        {
-            value = Mathf.Clamp01(value);
-            var alives = AudioSystemManager.Instance.GetAliveDatas(container);
-
-            foreach (var alive in alives)
-            {
-                alive.Source.volume = value;
-            }
         }
     }
 }

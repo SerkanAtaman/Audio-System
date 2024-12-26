@@ -8,7 +8,7 @@ namespace SeroJob.AudioSystem.Editor
     {
         private double _lastIdentifierCheckTime;
         private bool _lastIdentifierValidationResult;
-        private bool _eventsFoldout = false;
+        private static bool _eventsFoldout = false;
 
         public override UnityEngine.UIElements.VisualElement CreateInspectorGUI()
         {
@@ -71,8 +71,14 @@ namespace SeroJob.AudioSystem.Editor
             _eventsFoldout = EditorGUILayout.Foldout(_eventsFoldout, new GUIContent("Events"));
             if (_eventsFoldout)
             {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnStateUpdated"),
-                new GUIContent("On State Updated", "Called every time the state of the player is changed"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnPlayStarted"),
+                    new GUIContent("On Play Started", "Called when the player starts or resumes playing a clip"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnPaused"),
+                    new GUIContent("On Paused", "Called when the player pauses playing it's clips"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnStopped"),
+                    new GUIContent("On Stopped", "Called when player is being forced to play it's clips"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnPlayFinished"),
+                    new GUIContent("On Play Finished", "Called when player finishes playing all of it's clips without any intervention"));
             }
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("SyncAudioSourceTransform"),

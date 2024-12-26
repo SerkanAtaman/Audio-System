@@ -9,8 +9,7 @@ namespace SeroJob.AudioSystem
         [SerializeField] private AudioClip _audioClip;
         [SerializeField] private string _category;
         [SerializeField] private string _tag;
-        [SerializeField, Range(0f, 1f)] private float _currentVolume = 1f;
-        [SerializeField, Range(0f, 1f)] private float _maxVolume = 1f;
+        [SerializeField, Range(0f, 1f)] private float _baseVolume = 1f;
         [SerializeField, Range(-3f, 3f)] private float _pitch = 1f;
         [SerializeField, Range(0f, 1f)] private float _spatialBlend = 0f;
         [SerializeField] private bool _loop = false;
@@ -21,17 +20,19 @@ namespace SeroJob.AudioSystem
         public AudioClip AudioClip => _audioClip;
         public string Category => _category;
         public string Tag => _tag;
-        public float MaxVolume => _maxVolume;
         public uint CategoryID => _categoryID;
         public uint TagID => _tagID;
 
-        public float CurrentVolume
+        public float BaseVolume
         {
-            get => _currentVolume;
+            get
+            {
+                return _baseVolume;
+            }
             set
             {
-                _currentVolume = Mathf.Clamp01(value);
-                this.RefreshVolume();
+                _baseVolume = Mathf.Clamp01(value);
+                this.RefreshAliveDatas();
             }
         }
         public float Pitch
@@ -43,12 +44,17 @@ namespace SeroJob.AudioSystem
             set
             {
                 _pitch = Mathf.Clamp(value, -3f, 3f);
+                this.RefreshAliveDatas();
             }
         }
         public bool Loop
         {
             get => _loop;
-            set => _loop = value;
+            set
+            {
+                _loop = value;
+                this.RefreshAliveDatas();
+            }
         }
         public float SpatialBlend
         {
@@ -59,6 +65,7 @@ namespace SeroJob.AudioSystem
             set
             {
                 _spatialBlend = Mathf.Clamp01(value);
+                this.RefreshAliveDatas();
             }
         }
 
@@ -69,7 +76,7 @@ namespace SeroJob.AudioSystem
             _audioClip = audioClip;
             _category = "None";
             _tag = "None";
-            _maxVolume = 1f;
+            _baseVolume = 1f;
             _pitch = 1f;
             _spatialBlend = 0f;
             _loop = false;

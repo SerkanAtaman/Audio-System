@@ -41,7 +41,10 @@ namespace SeroJob.AudioSystem
         public AudioClipContainer[] Containers;
         public AudioSource CustomAudioSource;
 
-        public UnityEvent<State> OnStateUpdated;
+        public UnityEvent OnPlayStarted;
+        public UnityEvent OnPaused;
+        public UnityEvent OnStopped;
+        public UnityEvent OnPlayFinished;
 
         [ChildReferenceDropdown(typeof(AudioClipEffect))]
         [SerializeReference] public AudioClipEffect[] Effects;
@@ -61,8 +64,7 @@ namespace SeroJob.AudioSystem
                 if (_aliveAudioDatas == null) return;
                 foreach (var data in _aliveAudioDatas)
                 {
-                    var target = this.GetTargetVolume(data);
-                    data.Source.volume = target;
+                    data.Source.volume = _volume * data.Container.GetTargetVolume();
                 }
             }
         }
@@ -81,9 +83,15 @@ namespace SeroJob.AudioSystem
 
         private List<AudioClipContainer> _respectiveContainers = null;
 
+        private void Awake()
+        {
+            if (CustomAudioSource != null) CustomAudioSource.playOnAwake = false;
+        }
+
         private void OnEnable()
         {
             Stop(false);
+            if (CustomAudioSource != null) CustomAudioSource.playOnAwake = false;
             if (PlayMode == AutoPlayMode.OnEnable) Play();
         }
 
@@ -111,6 +119,7 @@ namespace SeroJob.AudioSystem
 
             var data = container.Play(CustomAudioSource);
             data.PlayerInstanceId = gameObject.GetInstanceID();
+            data.Source.volume *= Volume;
             AliveAudioDatas.Add(data);
 
             if (Effects != null)
@@ -121,7 +130,7 @@ namespace SeroJob.AudioSystem
                 }
             }
 
-            SetState(State.Playing);
+            SetState(State.Playing, false);
 
             if (AliveAudioDatas.Count < 2) AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
             if (SyncAudioSourceTransform) StartCoroutine(SyncSourceTransform());
@@ -129,7 +138,7 @@ namespace SeroJob.AudioSystem
 
         public void Pause()
         {
-            SetState(State.Paused);
+            SetState(State.Paused, true);
 
             foreach (var item in AliveAudioDatas)
             {
@@ -139,14 +148,14 @@ namespace SeroJob.AudioSystem
 
         public void Resume()
         {
-            SetState(State.Playing);
+            SetState(State.Playing, true);
             foreach (var item in AliveAudioDatas)
             {
                 item.Resume();
             }
         }
 
-        public void Stop(bool canDestroy = true)
+        public void Stop(bool canDestroy = true, bool isForced = true)
         {
             AudioSystemManager.Instance.OnAudioDied -= OnAudioDied;
 
@@ -162,17 +171,30 @@ namespace SeroJob.AudioSystem
             AliveAudioDatas.Clear();
             _respectiveContainers?.Clear();
             _respectiveContainers = null;
-            SetState(State.Idle);
+            SetState(State.Idle, isForced);
 
             if (DestroyPlayerWhenStopped && canDestroy) Destroy(gameObject);
         }
 
-        private void SetState(State state)
+        private void SetState(State state, bool isForced)
         {
             if (_state == state) return;
 
             _state = state;
-            OnStateUpdated?.Invoke(state);
+
+            switch (_state)
+            {
+                case State.Playing:
+                    OnPlayStarted?.Invoke();
+                    break;
+                case State.Paused:
+                    OnPaused?.Invoke();
+                    break;
+                case State.Idle:
+                    if (isForced) OnStopped?.Invoke();
+                    else OnPlayFinished?.Invoke();
+                    break;
+            }
         }
 
         private AudioClipContainer GetContainerToPlay()
@@ -219,7 +241,7 @@ namespace SeroJob.AudioSystem
             if (AliveAudioDatas.Contains(aliveAudioData))
                 AliveAudioDatas.Remove(aliveAudioData);
 
-            if (AliveAudioDatas.Count < 1) Stop();
+            if (AliveAudioDatas.Count < 1) Stop(true, false);
         }
 
         private IEnumerator SyncSourceTransform()

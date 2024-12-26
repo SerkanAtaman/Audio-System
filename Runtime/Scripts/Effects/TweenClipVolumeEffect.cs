@@ -5,7 +5,6 @@ namespace SeroJob.AudioSystem
     [System.Serializable]
     public class TweenClipVolumeEffect : AudioClipEffect
     {
-        public bool SetStartVolume = true;
         public bool TimeScaleIndependent = false;
         public float StartVolume;
         public float EndVolume;
@@ -17,12 +16,14 @@ namespace SeroJob.AudioSystem
         {
             _tween?.Kill();
 
-            float startVolume = container.CurrentVolume;
-            if (SetStartVolume) startVolume = StartVolume;
-
-            _tween = DOVirtual.Float(startVolume, EndVolume, Duration, (value) =>
+            _tween = DOVirtual.Float(StartVolume, EndVolume, Duration, (value) =>
             {
-                container.CurrentVolume = value;
+                var alives = container.GetAllAliveAudioData();
+                var target = container.GetTargetVolume();
+                foreach (var alive in alives)
+                {
+                    alive.Source.volume = target * value;
+                }
             });
             _tween.onComplete += () =>
             {

@@ -104,7 +104,8 @@ namespace SeroJob.AudioSystem
         {
             foreach (var aliveData in _aliveAudioData)
             {
-                aliveData.Container.RefreshVolume(settings);
+                if (aliveData.PlayerInstanceId != 0)
+                    aliveData.Container.RefreshAliveDatas();
             }
         }
 
@@ -115,16 +116,12 @@ namespace SeroJob.AudioSystem
             var source = _audioSourcePool.Pull();
             source.clip = container.AudioClip;
             source.transform.localPosition = Vector3.zero;
-            source.volume = 1f;
-            source.loop = container.Loop;
-            source.pitch = container.Pitch;
-            source.spatialBlend = container.SpatialBlend;
             source.gameObject.SetActive(true);
 
             var aliveData = new AliveAudioData(container, source, false);
             _aliveAudioData.Add(aliveData);
 
-            container.RefreshVolume(Settings);
+            aliveData.Refresh();
             source.Play();
 
             return aliveData;
@@ -141,7 +138,7 @@ namespace SeroJob.AudioSystem
             var aliveData = new AliveAudioData(container, audioSource, true);
             _aliveAudioData.Add(aliveData);
 
-            container.RefreshVolume(Settings);
+            aliveData.Refresh();
             audioSource.Play();
 
             return aliveData;
@@ -158,10 +155,14 @@ namespace SeroJob.AudioSystem
         {
             if (aliveAudioData == null) return;
             if (aliveAudioData.IsDisposed) return;
-            aliveAudioData.Source.clip = null;
-            aliveAudioData.Source.Stop();
-            if (!aliveAudioData.IsSourceCustom)
-                _audioSourcePool.PushItem(aliveAudioData.Source.gameObject, !aliveAudioData.Source.transform.IsChildOf(transform));
+
+            if (aliveAudioData.Source != null)
+            {
+                aliveAudioData.Source.clip = null;
+                aliveAudioData.Source.Stop();
+                if (!aliveAudioData.IsSourceCustom)
+                    _audioSourcePool.PushItem(aliveAudioData.Source.gameObject, !aliveAudioData.Source.transform.IsChildOf(transform));
+            }
 
             OnAudioDied?.Invoke(aliveAudioData);
             

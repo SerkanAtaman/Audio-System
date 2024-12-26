@@ -40,23 +40,22 @@ namespace SeroJob.AudioSystem.Editor
 
             EditorGUI.BeginChangeCheck();
 
-            var currentVolumeProperty = serializedObject.FindProperty("_currentVolume");
-            var maxVolumeProperty = serializedObject.FindProperty("_maxVolume");
+            var baseVolumeProperty = serializedObject.FindProperty("_baseVolume");
 
-            EditorGUILayout.PropertyField(currentVolumeProperty, new GUIContent("Volume", "The volume of the clip"));
-            EditorGUILayout.PropertyField(maxVolumeProperty, new GUIContent("Max Volume", "The max possible volume of the clip"));
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (currentVolumeProperty.floatValue >= maxVolumeProperty.floatValue) currentVolumeProperty.floatValue = maxVolumeProperty.floatValue;
-                if (Application.isPlaying) audioClipContainer.RefreshVolume(AudioSystemEditorUtils.GetSettings());
-            }
-
+            EditorGUILayout.PropertyField(baseVolumeProperty, new GUIContent("Base Volume", "The base volume of the clip"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_pitch"), new GUIContent("Pitch", "The default pitch of the clip"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_spatialBlend"), 
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_spatialBlend"),
                 new GUIContent("Spatial Blend", "Sets how much the audio source is treated as a 3D source.3D sources are affected by spatial position and spread. " +
                                     "if 3D pan level is 0, all spatial attenuation is ignored"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"), new GUIContent("Loop", "Wheter the clip should be looped or not"));
+
+            if (EditorGUI.EndChangeCheck() && Application.isPlaying)
+            {
+                EditorApplication.delayCall += () =>
+                {
+                    audioClipContainer.RefreshAliveDatas(AudioSystemEditorUtils.GetSettings());
+                };
+            }
 
             var categories = AudioSystemEditorUtils.GetAllCategoryNames();
 
