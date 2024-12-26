@@ -8,6 +8,8 @@ namespace SeroJob.AudioSystem
         public AudioClipContainer Container { get; private set; }
         public AudioSource Source { get; private set; }
 
+        public int PlayerInstanceId { get; set; } = 0;
+
         public float BornTime { get; private set; }
         public float LifeTime { get; private set; }
         public float TotalPauseTime { get; private set; }
@@ -28,6 +30,7 @@ namespace SeroJob.AudioSystem
 
         public AliveAudioData(AudioClipContainer container, AudioSource source)
         {
+            PlayerInstanceId = 0;
             Container = container;
             Source = source;
             BornTime = Time.time;

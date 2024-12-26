@@ -25,6 +25,14 @@ namespace SeroJob.AudioSystem.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Type"), new GUIContent("Play Type", "Decide how this audio player chooses it's container to use"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("PlayMode"), new GUIContent("Play Mode", "Decide if this player should start playing automatically"));
 
+            EditorGUI.BeginChangeCheck();
+            var volumeProperty = serializedObject.FindProperty("_volume");
+            EditorGUILayout.Slider(volumeProperty, 0f, 1f, new GUIContent("Volume", "The current volume multiplier"));
+            if (EditorGUI.EndChangeCheck() && Application.isPlaying)
+            {
+                player.Volume = volumeProperty.floatValue;
+            }
+
             var typeEnumIndex = serializedObject.FindProperty("Type").enumValueIndex;
 
             if (typeEnumIndex == 0) // Container

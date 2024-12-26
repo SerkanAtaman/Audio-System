@@ -45,7 +45,26 @@ namespace SeroJob.AudioSystem
         [ChildReferenceDropdown(typeof(AudioClipEffect))]
         [SerializeReference] public AudioClipEffect[] Effects;
 
+        [SerializeField] private float _volume = 1f;
         [SerializeField] private State _state;
+
+        public float Volume
+        {
+            get
+            {
+                return _volume;
+            }
+            set
+            {
+                _volume = Mathf.Clamp01(value);
+                if (_aliveAudioDatas == null) return;
+                foreach (var data in _aliveAudioDatas)
+                {
+                    var target = this.GetTargetVolume(data);
+                    data.Source.volume = target;
+                }
+            }
+        }
 
         public State CurrentState => _state;
 
@@ -90,6 +109,7 @@ namespace SeroJob.AudioSystem
             }
 
             var data = container.Play();
+            data.PlayerInstanceId = gameObject.GetInstanceID();
             AliveAudioDatas.Add(data);
 
             if (Effects != null)

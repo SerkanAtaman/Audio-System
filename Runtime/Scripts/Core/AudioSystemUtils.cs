@@ -1,5 +1,5 @@
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 
 namespace SeroJob.AudioSystem
@@ -54,6 +54,20 @@ namespace SeroJob.AudioSystem
             volume = Mathf.Clamp(volume, 0f, container.MaxVolume);
             volume *= settings.MasterVolumeMultiplier;
             container.SetPlaybackVolume(volume);
+            return volume;
+        }
+        
+        public static float GetTargetVolume(this AudioClipPlayer audioClipPlayer, AliveAudioData aliveAudioData, AudioSystemSettings settings = null)
+        {
+            if (settings == null) settings = AudioSystemManager.Instance.Settings;
+            var category = settings.GetCategoryByID(aliveAudioData.Container.CategoryID);
+            var volume = audioClipPlayer.Volume;
+            if (category != null)
+            {
+                volume *= category.Value.Volume;
+            }
+            volume = Mathf.Clamp(volume, 0f, aliveAudioData.Container.MaxVolume);
+            volume *= settings.MasterVolumeMultiplier;
             return volume;
         }
 
