@@ -39,10 +39,7 @@ namespace SeroJob.AudioSystem.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioClip"), new GUIContent("Audio Clip", "The clip that will be played"));
 
             EditorGUI.BeginChangeCheck();
-
-            var baseVolumeProperty = serializedObject.FindProperty("_baseVolume");
-
-            EditorGUILayout.PropertyField(baseVolumeProperty, new GUIContent("Base Volume", "The base volume of the clip"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_baseVolume"), new GUIContent("Base Volume", "The base volume of the clip"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_pitch"), new GUIContent("Pitch", "The default pitch of the clip"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_spatialBlend"),
                 new GUIContent("Spatial Blend", "Sets how much the audio source is treated as a 3D source.3D sources are affected by spatial position and spread. " +
@@ -103,9 +100,11 @@ namespace SeroJob.AudioSystem.Editor
 
         private void DrawMultipleInspectors()
         {
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_currentVolume"), new GUIContent("Volume", "The volume of the clip"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_maxVolume"), new GUIContent("Max Volume", "The max possible volume of the clip"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_baseVolume"), new GUIContent("Base Volume", "The base volume of the clip"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_pitch"), new GUIContent("Pitch", "The default pitch of the clip"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_spatialBlend"),
+                new GUIContent("Spatial Blend", "Sets how much the audio source is treated as a 3D source.3D sources are affected by spatial position and spread. " +
+                                    "if 3D pan level is 0, all spatial attenuation is ignored"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"), new GUIContent("Loop", "Wheter the clip should be looped or not"));
 
             var categories = AudioSystemEditorUtils.GetAllCategoryNames();

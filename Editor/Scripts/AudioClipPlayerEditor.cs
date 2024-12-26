@@ -4,11 +4,51 @@ using UnityEngine;
 namespace SeroJob.AudioSystem.Editor
 {
     [UnityEditor.CustomEditor(typeof(AudioClipPlayer))]
+    [CanEditMultipleObjects]
     public class AudioClipPlayerEditor : UnityEditor.Editor
     {
+        SerializedProperty _typeProperty;
+        SerializedProperty _playModeProperty;
+        SerializedProperty _volumeProperty;
+        SerializedProperty _customAudioSourceProperty;
+        SerializedProperty _containersIdsProperty;
+        SerializedProperty _containersProperty;
+        SerializedProperty _tagIDProperty;
+        SerializedProperty _effectsProperty;
+        SerializedProperty _onPlayStartedProperty;
+        SerializedProperty _onPausedProperty;
+        SerializedProperty _onStoppedProperty;
+        SerializedProperty _onPlayFinishedProperty;
+        SerializedProperty _syncAudioSourceTransformProperty;
+        SerializedProperty _allowSimultaneousPlayProperty;
+        SerializedProperty _chooseClipsRespectivelyProperty;
+        SerializedProperty _destroyPlayerWhenStoppedProperty;
+        SerializedProperty _stateProperty;
+
         private double _lastIdentifierCheckTime;
         private bool _lastIdentifierValidationResult;
         private static bool _eventsFoldout = false;
+
+        private void OnEnable()
+        {
+            _typeProperty = serializedObject.FindProperty("Type");
+            _playModeProperty = serializedObject.FindProperty("PlayMode");
+            _volumeProperty = serializedObject.FindProperty("_volume");
+            _customAudioSourceProperty = serializedObject.FindProperty("CustomAudioSource");
+            _containersIdsProperty = serializedObject.FindProperty("ContainerIDs");
+            _containersProperty = serializedObject.FindProperty("Containers");
+            _tagIDProperty = serializedObject.FindProperty("TagID");
+            _effectsProperty = serializedObject.FindProperty("Effects");
+            _onPlayStartedProperty = serializedObject.FindProperty("OnPlayStarted");
+            _onPausedProperty = serializedObject.FindProperty("OnPaused");
+            _onStoppedProperty = serializedObject.FindProperty("OnStopped");
+            _onPlayFinishedProperty = serializedObject.FindProperty("OnPlayFinished");
+            _syncAudioSourceTransformProperty = serializedObject.FindProperty("SyncAudioSourceTransform");
+            _allowSimultaneousPlayProperty = serializedObject.FindProperty("AllowSimultaneousPlay");
+            _chooseClipsRespectivelyProperty = serializedObject.FindProperty("ChooseClipsRespectively");
+            _destroyPlayerWhenStoppedProperty = serializedObject.FindProperty("DestroyPlayerWhenStopped");
+            _stateProperty = serializedObject.FindProperty("_state");
+        }
 
         public override UnityEngine.UIElements.VisualElement CreateInspectorGUI()
         {
@@ -18,108 +58,112 @@ namespace SeroJob.AudioSystem.Editor
 
         public override void OnInspectorGUI()
         {
-            if (targets.Length > 1) return;
+            serializedObject.Update();
 
-            AudioClipPlayer player = (AudioClipPlayer)target;
+            EditorGUILayout.PropertyField(_typeProperty, new GUIContent("Play Type", "Decide how this audio player chooses it's container to use"));
+            EditorGUILayout.PropertyField(_playModeProperty, new GUIContent("Play Mode", "Decide if this player should start playing automatically"));
+            EditorGUILayout.Slider(_volumeProperty, 0f, 1f, new GUIContent("Volume", "The current volume multiplier"));
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("Type"), new GUIContent("Play Type", "Decide how this audio player chooses it's container to use"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("PlayMode"), new GUIContent("Play Mode", "Decide if this player should start playing automatically"));
-
-            EditorGUI.BeginChangeCheck();
-            var volumeProperty = serializedObject.FindProperty("_volume");
-            EditorGUILayout.Slider(volumeProperty, 0f, 1f, new GUIContent("Volume", "The current volume multiplier"));
-            if (EditorGUI.EndChangeCheck() && Application.isPlaying)
+            if (targets.Length == 1)
             {
-                player.Volume = volumeProperty.floatValue;
+                EditorGUILayout.PropertyField(_customAudioSourceProperty,
+                    new GUIContent("Custom Audio Source", "The audio source that will be playing the container"));
             }
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("CustomAudioSource"),
-                    new GUIContent("Custom Audio Source", "The audio source that will be playing the container"));
-
-            var typeEnumIndex = serializedObject.FindProperty("Type").enumValueIndex;
+            var typeEnumIndex = _typeProperty.enumValueIndex;
             if (typeEnumIndex == 0) // Container
             {
-                serializedObject.FindProperty("ContainerIDs").ClearArray();
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("Containers"), new GUIContent("Containers", "The Audio Clip Containers this player will use"));
+                _containersIdsProperty.ClearArray();
+                EditorGUILayout.PropertyField(_containersProperty, new GUIContent("Containers", "The Audio Clip Containers this player will use"));
             }
-            else if (typeEnumIndex == 1) // ContainerWithID
+            else if (typeEnumIndex == 1 && targets.Length == 1) // ContainerWithID
             {
-                serializedObject.FindProperty("Containers").ClearArray();
+                _containersProperty.ClearArray();
 
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("ContainerIDs"), new GUIContent("Container IDs", "The array of Unique ids of audio clip container"));
+                EditorGUILayout.PropertyField(_containersIdsProperty, new GUIContent("Container IDs", "The array of Unique ids of audio clip container"));
 
-                if (!CheckIdentifiers(player))
+                if (!CheckIdentifiers((AudioClipPlayer)target))
                 {
                     EditorGUILayout.HelpBox("Invalid Identifier", MessageType.Warning);
                 }
             }
             else if (typeEnumIndex == 2) // RandomByTag
             {
-                serializedObject.FindProperty("ContainerIDs").ClearArray();
-                serializedObject.FindProperty("Containers").ClearArray();
+                _containersIdsProperty.ClearArray();
+                _containersProperty.ClearArray();
                 var tags = AudioSystemEditorUtils.GetAllTagNames();
 
-                var tagID = serializedObject.FindProperty("TagID").uintValue;
+                var tagID = _tagIDProperty.uintValue;
                 var selectedTag = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the container"), (int)tagID, tags);
-                serializedObject.FindProperty("TagID").uintValue = (uint)selectedTag;
+                _tagIDProperty.uintValue = (uint)selectedTag;
             }
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("Effects"),
+            if (targets.Length == 1)
+            {
+                EditorGUILayout.PropertyField(_effectsProperty,
                 new GUIContent("Effects", "Add any amount of audio clip effect you wish to apply when this player starts playing"));
+            }
 
             //Events
-            _eventsFoldout = EditorGUILayout.Foldout(_eventsFoldout, new GUIContent("Events"));
-            if (_eventsFoldout)
+            if (targets.Length == 1)
             {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnPlayStarted"),
+                _eventsFoldout = EditorGUILayout.Foldout(_eventsFoldout, new GUIContent("Events"));
+
+                if (_eventsFoldout)
+                {
+                    EditorGUILayout.PropertyField(_onPlayStartedProperty,
                     new GUIContent("On Play Started", "Called when the player starts or resumes playing a clip"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnPaused"),
-                    new GUIContent("On Paused", "Called when the player pauses playing it's clips"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnStopped"),
-                    new GUIContent("On Stopped", "Called when player is being forced to play it's clips"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("OnPlayFinished"),
-                    new GUIContent("On Play Finished", "Called when player finishes playing all of it's clips without any intervention"));
+                    EditorGUILayout.PropertyField(_onPausedProperty,
+                        new GUIContent("On Paused", "Called when the player pauses playing it's clips"));
+                    EditorGUILayout.PropertyField(_onStoppedProperty,
+                        new GUIContent("On Stopped", "Called when player is being forced to play it's clips"));
+                    EditorGUILayout.PropertyField(_onPlayFinishedProperty,
+                        new GUIContent("On Play Finished", "Called when player finishes playing all of it's clips without any intervention"));
+                }
             }
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("SyncAudioSourceTransform"),
+            EditorGUILayout.PropertyField(_syncAudioSourceTransformProperty,
                 new GUIContent("Sync Audio Source Transform", "Decide whether the audio source that will be used to play this clip should be in the same position with this player"));
 
-            var allowSimultaneousPlayProperty = serializedObject.FindProperty("AllowSimultaneousPlay");
-            EditorGUILayout.PropertyField(allowSimultaneousPlayProperty, 
+            EditorGUILayout.PropertyField(_allowSimultaneousPlayProperty, 
                 new GUIContent("Allow Simultaneous Play", "Whether the player should play multiple clips simultaneously or play them on after another"));
-            if (allowSimultaneousPlayProperty.boolValue)
+            if (_allowSimultaneousPlayProperty.boolValue)
             {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("ChooseClipsRespectively"),
+                EditorGUILayout.PropertyField(_chooseClipsRespectivelyProperty,
                 new GUIContent("Choose Clips Respectively", "Decide whether the clips from collection should be choosen randomly or respectively"));
             }
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("DestroyPlayerWhenStopped"),
+            EditorGUILayout.PropertyField(_destroyPlayerWhenStoppedProperty,
                 new GUIContent("Destroy Player When Stopped", "Decide if the player gameobject should be destroyed when it's clip is stopped playing"));
 
             EditorGUILayout.Space(10);
 
-            GUI.enabled = false;
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_state"),
-                new GUIContent("Current State"));
-            GUI.enabled = true;
+            if (targets.Length == 1)
+            {
+                var player = (AudioClipPlayer)target;
+                GUI.enabled = false;
+                EditorGUILayout.PropertyField(_stateProperty,
+                    new GUIContent("Current State"));
+                GUI.enabled = true;
 
-            EditorGUILayout.Space(10);
+                EditorGUILayout.Space(10);
 
-            if (GUILayout.Button(new GUIContent("Play", "")) && Application.isPlaying)
-            {
-                player.Play();
-            }
-            if (GUILayout.Button(new GUIContent("Pause", "")) && Application.isPlaying)
-            {
-                player.Pause();
-            }
-            if (GUILayout.Button(new GUIContent("Resume", "")) && Application.isPlaying)
-            {
-                player.Resume();
-            }
-            if (GUILayout.Button(new GUIContent("Stop", "")) && Application.isPlaying)
-            {
-                player.Stop();
+                if (GUILayout.Button(new GUIContent("Play", "")) && Application.isPlaying)
+                {
+                    player.Play();
+                }
+                if (GUILayout.Button(new GUIContent("Pause", "")) && Application.isPlaying)
+                {
+                    player.Pause();
+                }
+                if (GUILayout.Button(new GUIContent("Resume", "")) && Application.isPlaying)
+                {
+                    player.Resume();
+                }
+                if (GUILayout.Button(new GUIContent("Stop", "")) && Application.isPlaying)
+                {
+                    player.Stop();
+                }
             }
 
             serializedObject.ApplyModifiedProperties();

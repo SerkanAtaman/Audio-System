@@ -95,6 +95,11 @@ namespace SeroJob.AudioSystem
             if (PlayMode == AutoPlayMode.OnEnable) Play();
         }
 
+        private void OnValidate()
+        {
+            Volume = _volume;
+        }
+
         private void Start()
         {
             if (PlayMode == AutoPlayMode.OnStart) Play();
