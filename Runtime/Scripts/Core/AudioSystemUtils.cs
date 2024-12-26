@@ -57,18 +57,6 @@ namespace SeroJob.AudioSystem
             return volume;
         }
 
-        public static float RefreshPitch(this AudioClipContainer container)
-        {
-            var alives = AudioSystemManager.Instance.GetAliveDatas(container);
-
-            foreach (var alive in alives)
-            {
-                alive.Source.pitch = container.Pitch;
-            }
-
-            return container.Pitch;
-        }
-
         public static AliveAudioData GetLatestAliveAudioData(this AudioClipContainer container)
         {
             var alives = AudioSystemManager.Instance.GetAliveDatas(container);

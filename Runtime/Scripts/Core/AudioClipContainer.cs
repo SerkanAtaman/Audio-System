@@ -12,6 +12,7 @@ namespace SeroJob.AudioSystem
         [SerializeField, Range(0f, 1f)] private float _currentVolume = 1f;
         [SerializeField, Range(0f, 1f)] private float _maxVolume = 1f;
         [SerializeField, Range(-3f, 3f)] private float _pitch = 1f;
+        [SerializeField, Range(0f, 1f)] private float _spatialBlend = 0f;
         [SerializeField] private bool _loop = false;
         [SerializeField] private uint _categoryID;
         [SerializeField] private uint _tagID;
@@ -21,7 +22,6 @@ namespace SeroJob.AudioSystem
         public string Category => _category;
         public string Tag => _tag;
         public float MaxVolume => _maxVolume;
-        public bool Loop => _loop;
         public uint CategoryID => _categoryID;
         public uint TagID => _tagID;
 
@@ -34,7 +34,6 @@ namespace SeroJob.AudioSystem
                 this.RefreshVolume();
             }
         }
-
         public float Pitch
         {
             get
@@ -44,7 +43,22 @@ namespace SeroJob.AudioSystem
             set
             {
                 _pitch = Mathf.Clamp(value, -3f, 3f);
-                this.RefreshPitch();
+            }
+        }
+        public bool Loop
+        {
+            get => _loop;
+            set => _loop = value;
+        }
+        public float SpatialBlend
+        {
+            get
+            {
+                return _spatialBlend;
+            }
+            set
+            {
+                _spatialBlend = Mathf.Clamp01(value);
             }
         }
 
@@ -56,6 +70,8 @@ namespace SeroJob.AudioSystem
             _category = "None";
             _tag = "None";
             _maxVolume = 1f;
+            _pitch = 1f;
+            _spatialBlend = 0f;
             _loop = false;
             _id = id;
         }

@@ -52,14 +52,10 @@ namespace SeroJob.AudioSystem.Editor
                 if (Application.isPlaying) audioClipContainer.RefreshVolume(AudioSystemEditorUtils.GetSettings());
             }
 
-            EditorGUI.BeginChangeCheck();
-            var pitchProperty = serializedObject.FindProperty("_pitch");
-            EditorGUILayout.PropertyField(pitchProperty, new GUIContent("Pitch", "The default pitch of the clip"));
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (Application.isPlaying) audioClipContainer.RefreshPitch();
-            }
-            
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_pitch"), new GUIContent("Pitch", "The default pitch of the clip"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_spatialBlend"), 
+                new GUIContent("Spatial Blend", "Sets how much the audio source is treated as a 3D source.3D sources are affected by spatial position and spread. " +
+                                    "if 3D pan level is 0, all spatial attenuation is ignored"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"), new GUIContent("Loop", "Wheter the clip should be looped or not"));
 
             var categories = AudioSystemEditorUtils.GetAllCategoryNames();

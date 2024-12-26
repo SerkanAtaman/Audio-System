@@ -118,6 +118,7 @@ namespace SeroJob.AudioSystem
             source.volume = 1f;
             source.loop = container.Loop;
             source.pitch = container.Pitch;
+            source.spatialBlend = container.SpatialBlend;
             source.gameObject.SetActive(true);
 
             var aliveData = new AliveAudioData(container, source);
