@@ -44,7 +44,7 @@ namespace SeroJob.AudioSystem
 
         private void LateUpdate()
         {
-            if (Time.time - _lastUpdateTime < 1f) return;
+            if (Time.time - _lastUpdateTime < 0.1f) return;
 
             _lastUpdateTime = Time.time;
 

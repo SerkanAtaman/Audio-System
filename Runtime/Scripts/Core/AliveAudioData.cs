@@ -23,7 +23,7 @@ namespace SeroJob.AudioSystem
             get
             {
                 if (IsDisposed) return true;
-                if (Container.Loop) return false;
+                if (Source.loop) return false;
 
                 return Time.time > BornTime + LifeTime + 1f + TotalPauseTime;
             }
