@@ -46,7 +46,7 @@ namespace SeroJob.AudioSystem
         public UnityEvent OnStopped;
         public UnityEvent OnPlayFinished;
 
-        [ChildReferenceDropdown(typeof(AudioClipEffect))]
+        [ChildReferenceDropdown]
         [SerializeReference] public AudioClipEffect[] Effects;
 
         [SerializeField] private float _volume = 1f;
