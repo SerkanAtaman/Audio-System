@@ -198,10 +198,15 @@ namespace SeroJob.AudioSystem
         public List<AliveAudioData> GetAliveDatas(AudioClipContainer container)
         {
             var result = new List<AliveAudioData>();
+
+            if (container == null) return result;
             if (_aliveAudioData == null) return result;
 
             foreach (var aliveData in _aliveAudioData)
             {
+                if (aliveData == null) continue;
+                if (aliveData.Container == null) continue;
+
                 if (aliveData.Container.ID == container.ID) result.Add(aliveData);
             }
 
