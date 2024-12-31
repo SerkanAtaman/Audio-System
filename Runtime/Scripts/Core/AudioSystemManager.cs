@@ -52,7 +52,6 @@ namespace SeroJob.AudioSystem
             {
                 if (aliveData.HasDied)
                 {
-                    Stop(aliveData);
                     _deadAudioData.Add(aliveData);
                 }
             }
@@ -60,6 +59,7 @@ namespace SeroJob.AudioSystem
             foreach (var deadData in _deadAudioData)
             {
                 _aliveAudioData.Remove(deadData);
+                Stop(deadData);
             }
 
             _deadAudioData.Clear();
