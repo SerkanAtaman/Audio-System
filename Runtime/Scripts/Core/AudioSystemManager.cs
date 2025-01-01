@@ -195,6 +195,24 @@ namespace SeroJob.AudioSystem
             _aliveAudioData.Clear();
         }
 
+        public void PauseAll()
+        {
+            foreach (var aliveData in _aliveAudioData)
+            {
+                if (aliveData == null) continue;
+                Pause(aliveData);
+            }
+        }
+
+        public void ResumeAll()
+        {
+            foreach (var aliveData in _aliveAudioData)
+            {
+                if (aliveData == null) continue;
+                Resume(aliveData);
+            }
+        }
+
         public List<AliveAudioData> GetAliveDatas(AudioClipContainer container)
         {
             var result = new List<AliveAudioData>();
