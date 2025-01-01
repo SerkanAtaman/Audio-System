@@ -47,5 +47,31 @@ namespace SeroJob.AudioSystem
                 }
             }
         }
+
+        public AudioCategory? GetCategoryByName(string name)
+        {
+            foreach (var category in Categories)
+            {
+                if (string.Equals(category.Name, name))
+                {
+                    return category;
+                }
+            }
+
+            return null;
+        }
+
+        public AudioCategory? GetCategoryID(int id)
+        {
+            foreach (var category in Categories)
+            {
+                if (category.ID == id)
+                {
+                    return category;
+                }
+            }
+
+            return null;
+        }
     }
 }

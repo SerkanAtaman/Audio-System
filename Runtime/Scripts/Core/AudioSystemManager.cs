@@ -185,30 +185,33 @@ namespace SeroJob.AudioSystem
             aliveAudioData.Resume();
         }
 
-        public void KillAll()
+        public void KillAll(AudioCategory? category = null)
         {
             foreach (var aliveData in _aliveAudioData)
             {
                 if (aliveData == null) continue;
+                if (category != null && aliveData.Container.CategoryID != category.Value.ID) continue;
                 Stop(aliveData);
             }
             _aliveAudioData.Clear();
         }
 
-        public void PauseAll()
+        public void PauseAll(AudioCategory? category = null)
         {
             foreach (var aliveData in _aliveAudioData)
             {
                 if (aliveData == null) continue;
+                if (category != null && aliveData.Container.CategoryID != category.Value.ID) continue;
                 Pause(aliveData);
             }
         }
 
-        public void ResumeAll()
+        public void ResumeAll(AudioCategory? category = null)
         {
             foreach (var aliveData in _aliveAudioData)
             {
                 if (aliveData == null) continue;
+                if (category != null && aliveData.Container.CategoryID != category.Value.ID) continue;
                 Resume(aliveData);
             }
         }
