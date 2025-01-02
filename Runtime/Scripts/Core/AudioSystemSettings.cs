@@ -5,13 +5,13 @@ namespace SeroJob.AudioSystem
 {
     public class AudioSystemSettings : ScriptableObject
     {
+        public int AudioSourcePoolStartSize = 20;
+
         [SerializeField, Range(0f, 1f)]
         private float _masterVolumeMultiplier = 1f;
 
         public AudioCategory[] Categories;
         public string[] Tags;
-
-        public int AudioSourcePoolStartSize = 20;
 
         public Action<AudioSystemSettings> OnUpdated;
 

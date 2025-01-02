@@ -1,5 +1,4 @@
 using UnityEngine;
-using SeroJob.ObjectPooling;
 using System.Collections.Generic;
 using System;
 
@@ -31,7 +30,7 @@ namespace SeroJob.AudioSystem
 
         public Action<AliveAudioData> OnAudioDied;
 
-        private ObjectPool<AudioSource> _audioSourcePool;
+        private AudioSourcePool _audioSourcePool;
         private List<AliveAudioData> _aliveAudioData;
         private List<AliveAudioData> _deadAudioData;
 
@@ -83,16 +82,10 @@ namespace SeroJob.AudioSystem
             Settings = GetSettings();
             Library = new(GetLibrary());
 
-            var pref = new GameObject("audioSourcePref");
-            var comp = pref.AddComponent<AudioSource>();
-            comp.playOnAwake = false;
-
-            _audioSourcePool = new(pref, transform, Settings.AudioSourcePoolStartSize, false);
+            _audioSourcePool = new(transform, Settings.AudioSourcePoolStartSize);
             _aliveAudioData = new();
             _deadAudioData = new();
             _lastUpdateTime = 0;
-
-            Destroy(pref);
 
             IsInitialized = true;
             _instance = this;
@@ -161,7 +154,7 @@ namespace SeroJob.AudioSystem
                 aliveAudioData.Source.clip = null;
                 aliveAudioData.Source.Stop();
                 if (!aliveAudioData.IsSourceCustom)
-                    _audioSourcePool.PushItem(aliveAudioData.Source.gameObject, !aliveAudioData.Source.transform.IsChildOf(transform));
+                    _audioSourcePool.PushItem(aliveAudioData.Source);
             }
 
             OnAudioDied?.Invoke(aliveAudioData);
