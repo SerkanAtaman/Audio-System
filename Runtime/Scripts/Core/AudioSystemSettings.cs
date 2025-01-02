@@ -11,6 +11,8 @@ namespace SeroJob.AudioSystem
         public AudioCategory[] Categories;
         public string[] Tags;
 
+        public int AudioSourcePoolStartSize = 20;
+
         public Action<AudioSystemSettings> OnUpdated;
 
         public float MasterVolumeMultiplier

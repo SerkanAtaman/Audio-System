@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace SeroJob.AudioSystem
 {
@@ -42,15 +40,36 @@ namespace SeroJob.AudioSystem
             return null;
         }
 
+        public static void SetMuteState(this AudioCategory category, bool isMuted, AudioSystemSettings settings = null)
+        {
+            if (AudioSystemManager.Instance == null) return;
+
+            if (settings == null) settings = AudioSystemManager.Instance.Settings;
+
+            for (int i = 0; i < settings.Categories.Length; i++)
+            {
+                var cat = settings.Categories[i];
+                if (cat.ID != category.ID) continue;
+                cat.Muted = isMuted;
+                settings.Categories[i] = cat;
+            }
+
+            settings.OnUpdated?.Invoke(settings);
+        }
+
         public static void RefreshAliveDatas(this AudioClipContainer container, AudioSystemSettings settings = null)
         {
             var volume = GetTargetVolume(container);
             var alives = container.GetAllAliveAudioData();
             if (alives == null) return;
+            if (settings == null) settings = AudioSystemManager.Instance.Settings;
+
+            var category = settings.GetCategoryByID(container.CategoryID);
 
             foreach (var alive in alives)
             {
                 alive.Source.volume = volume;
+                alive.Source.mute = category != null && category.Value.Muted;
                 alive.Source.loop = container.Loop;
                 alive.Source.playOnAwake = false;
                 alive.Source.pitch = container.Pitch;
@@ -60,9 +79,13 @@ namespace SeroJob.AudioSystem
 
         public static void Refresh(this AliveAudioData aliveAudioData, AudioSystemSettings settings = null)
         {
+            if (settings == null) settings = AudioSystemManager.Instance.Settings;
+
+            var category = settings.GetCategoryByID(aliveAudioData.Container.CategoryID);
             var volume = GetTargetVolume(aliveAudioData.Container);
 
             aliveAudioData.Source.volume = volume;
+            aliveAudioData.Source.mute = category != null && category.Value.Muted;
             aliveAudioData.Source.loop = aliveAudioData.Container.Loop;
             aliveAudioData.Source.playOnAwake = false;
             aliveAudioData.Source.pitch = aliveAudioData.Container.Pitch;

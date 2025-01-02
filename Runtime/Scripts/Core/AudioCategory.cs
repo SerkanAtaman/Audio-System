@@ -6,5 +6,6 @@ namespace SeroJob.AudioSystem
         public string Name;
         public uint ID;
         public float Volume;
+        public bool Muted;
     }
 }

@@ -79,17 +79,17 @@ namespace SeroJob.AudioSystem
         private void Init()
         {
             if (IsInitialized) return;
-            var pref = new GameObject("audioSourcePref");
-            var comp = pref.AddComponent<AudioSource>();
-            comp.playOnAwake = false;
-
-            _audioSourcePool = new(pref, transform, 20, false);
-            _aliveAudioData = new();
-            _deadAudioData = new();
 
             Settings = GetSettings();
             Library = new(GetLibrary());
 
+            var pref = new GameObject("audioSourcePref");
+            var comp = pref.AddComponent<AudioSource>();
+            comp.playOnAwake = false;
+
+            _audioSourcePool = new(pref, transform, Settings.AudioSourcePoolStartSize, false);
+            _aliveAudioData = new();
+            _deadAudioData = new();
             _lastUpdateTime = 0;
 
             Destroy(pref);

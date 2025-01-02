@@ -251,10 +251,12 @@ namespace SeroJob.AudioSystem
 
         private IEnumerator SyncSourceTransform()
         {
-            while(AliveAudioDatas.Count > 0)
+            while (AliveAudioDatas != null && AliveAudioDatas.Count > 0)
             {
                 foreach (var item in AliveAudioDatas)
                 {
+                    if (item == null) continue;
+
                     item.Source.transform.position = transform.position;
                 }
 

@@ -31,6 +31,10 @@ namespace SeroJob.AudioSystem.Editor
                 var volumeProperty = property.FindPropertyRelative("Volume");
                 var volumeLabel = new GUIContent("Volume", "The volume multiplier of the category");
                 EditorGUI.Slider(volumeRect, volumeProperty, 0f, 1f, volumeLabel);
+
+                var muteRect = volumeRect;
+                muteRect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                EditorGUI.PropertyField(muteRect, property.FindPropertyRelative("Muted"), new GUIContent("Muted", "Is the category muted"));
             }
 
             EditorGUI.EndProperty();
@@ -40,7 +44,7 @@ namespace SeroJob.AudioSystem.Editor
         {
             if (!property.isExpanded) return EditorGUIUtility.singleLineHeight;
 
-            return EditorGUIUtility.singleLineHeight * 4 + EditorGUIUtility.standardVerticalSpacing * 3;
+            return EditorGUIUtility.singleLineHeight * 5 + EditorGUIUtility.standardVerticalSpacing * 4;
         }
     }
 }
