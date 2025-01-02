@@ -5,13 +5,26 @@ namespace SeroJob.AudioSystem
 {
     public class AudioSystemSettings : ScriptableObject
     {
-        [Range(0f, 1f)]
-        public float MasterVolumeMultiplier = 1.0f;
+        [SerializeField, Range(0f, 1f)]
+        private float _masterVolumeMultiplier = 1f;
 
         public AudioCategory[] Categories;
         public string[] Tags;
 
         public Action<AudioSystemSettings> OnUpdated;
+
+        public float MasterVolumeMultiplier
+        {
+            get
+            {
+                return _masterVolumeMultiplier;
+            }
+            set
+            {
+                _masterVolumeMultiplier = Mathf.Clamp01(value);
+                OnUpdated?.Invoke(this);
+            }
+        }
 
         private void OnValidate()
         {
