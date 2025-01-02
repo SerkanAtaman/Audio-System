@@ -90,6 +90,7 @@ namespace SeroJob.AudioSystem
             IsInitialized = true;
             _instance = this;
 
+            AudioSystemUtils.SetAllCategoryMuteStates(false, Settings);
             DontDestroyOnLoad(gameObject);
         }
 

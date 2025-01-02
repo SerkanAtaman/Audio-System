@@ -7,10 +7,28 @@ namespace SeroJob.AudioSystem.Editor
     [CanEditMultipleObjects]
     public class AudioClipContainerEditor : UnityEditor.Editor
     {
+        private int _selectedMultipleCategoryIndex;
+        private int _selectedMultipleTagIndex;
+
+        private void OnEnable()
+        {
+            _selectedMultipleCategoryIndex = 0;
+            _selectedMultipleTagIndex = 0;
+        }
+
         public override void OnInspectorGUI()
         {
+            serializedObject.Update();
+
             if (targets.Length == 1) DrawSingleInspector();
             else DrawMultipleInspectors();
+
+            serializedObject.ApplyModifiedProperties();
+
+            EditorApplication.delayCall += () =>
+            {
+                AssetDatabase.SaveAssetIfDirty(target);
+            };
         }
 
         private void DrawSingleInspector()
@@ -61,7 +79,6 @@ namespace SeroJob.AudioSystem.Editor
             serializedObject.FindProperty("_category").stringValue = categories[selectedCat];
 
             var tags = AudioSystemEditorUtils.GetAllTagNames();
-
             var tagIndex = AudioSystemEditorUtils.GetTagNameIndex(tags, serializedObject.FindProperty("_tag").stringValue);
             var selectedTag = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the clip"), (int)tagIndex, tags);
             serializedObject.FindProperty("_tag").stringValue = tags[selectedTag];
@@ -90,12 +107,6 @@ namespace SeroJob.AudioSystem.Editor
                 var wnd = EditorWindow.GetWindow<EditTagsWindow>();
                 wnd.titleContent = new GUIContent("Tags Window");
             }
-
-            EditorApplication.delayCall += () =>
-            {
-                serializedObject.ApplyModifiedProperties();
-                AssetDatabase.SaveAssetIfDirty(target);
-            };
         }
 
         private void DrawMultipleInspectors()
@@ -108,22 +119,58 @@ namespace SeroJob.AudioSystem.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"), new GUIContent("Loop", "Wheter the clip should be looped or not"));
 
             var categories = AudioSystemEditorUtils.GetAllCategoryNames();
+            var categoryProperty = serializedObject.FindProperty("_category");
 
-            var categoryIndex = AudioSystemEditorUtils.GetCategoryNameIndex(categories, serializedObject.FindProperty("_category").stringValue);
-            var selected = EditorGUILayout.Popup(new GUIContent("Category", "The category of the clip"), (int)categoryIndex, categories);
-            serializedObject.FindProperty("_category").stringValue = categories[selected];
+            if (!categoryProperty.hasMultipleDifferentValues)
+            {
+                var categoryIndex = AudioSystemEditorUtils.GetCategoryNameIndex(categories, serializedObject.FindProperty("_category").stringValue);
+                var selected = EditorGUILayout.Popup(new GUIContent("Category", "The category of the clip"), (int)categoryIndex, categories);
+                categoryProperty.stringValue = categories[selected];
+
+                GUI.enabled = false;
+                var selectedCategory = AudioSystemEditorUtils.GetCategoryByName(categories[selected]);
+
+                if (selectedCategory != null)
+                    serializedObject.FindProperty("_categoryID").uintValue = selectedCategory.Value.ID;
+                else
+                    serializedObject.FindProperty("_categoryID").uintValue = 0;
+
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_categoryID"), new GUIContent("Category ID", "The int id of the selected category"));
+                GUI.enabled = true;
+            }
+            else
+            {
+                _selectedMultipleCategoryIndex = EditorGUILayout.Popup(new GUIContent("Category", "The category of the clip"), _selectedMultipleCategoryIndex, categories);
+                if (_selectedMultipleCategoryIndex != 0)
+                {
+                    categoryProperty.stringValue = categories[_selectedMultipleCategoryIndex];
+                }
+            }
 
             var tags = AudioSystemEditorUtils.GetAllTagNames();
+            var tagProperty = serializedObject.FindProperty("_tag");
 
-            var tagIndex = AudioSystemEditorUtils.GetTagNameIndex(tags, serializedObject.FindProperty("_tag").stringValue);
-            var selectedTag = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the clip"), (int)tagIndex, tags);
-            serializedObject.FindProperty("_tag").stringValue = tags[selectedTag];
-
-            EditorApplication.delayCall += () =>
+            if (!tagProperty.hasMultipleDifferentValues)
             {
-                serializedObject.ApplyModifiedProperties();
-                AssetDatabase.SaveAssetIfDirty(target);
-            };
+                var tagIndex = AudioSystemEditorUtils.GetTagNameIndex(tags, serializedObject.FindProperty("_tag").stringValue);
+                var selectedTag = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the clip"), (int)tagIndex, tags);
+                tagProperty.stringValue = tags[selectedTag];
+
+                var tagIdProperty = serializedObject.FindProperty("_tagID");
+
+                GUI.enabled = false;
+                tagIdProperty.uintValue = (uint)selectedTag;
+                EditorGUILayout.PropertyField(tagIdProperty, new GUIContent("Tag ID", "The int id of the selected tag"));
+                GUI.enabled = true;
+            }
+            else
+            {
+                _selectedMultipleTagIndex = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the clip"), _selectedMultipleTagIndex, tags);
+                if (_selectedMultipleTagIndex != 0)
+                {
+                    tagProperty.stringValue = tags[_selectedMultipleTagIndex];
+                }
+            }
         }
     }
 }

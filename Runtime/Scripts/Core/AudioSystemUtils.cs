@@ -57,6 +57,21 @@ namespace SeroJob.AudioSystem
             settings.OnUpdated?.Invoke(settings);
         }
 
+        public static void SetAllCategoryMuteStates(bool isMuted, AudioSystemSettings settings = null)
+        {
+            if (AudioSystemManager.Instance == null) return;
+            if (settings == null) settings = AudioSystemManager.Instance.Settings;
+
+            for (int i = 0; i < settings.Categories.Length; i++)
+            {
+                var cat = settings.Categories[i];
+                cat.Muted = isMuted;
+                settings.Categories[i] = cat;
+            }
+
+            settings.OnUpdated?.Invoke(settings);
+        }
+
         public static void RefreshAliveDatas(this AudioClipContainer container, AudioSystemSettings settings = null)
         {
             var volume = GetTargetVolume(container);
