@@ -98,7 +98,7 @@ namespace SeroJob.AudioSystem
         {
             foreach (var aliveData in _aliveAudioData)
             {
-                if (aliveData.PlayerInstanceId != 0)
+                if (aliveData.PlayerInstanceId != 0 && !aliveData.IsDisposed)
                     aliveData.Container.RefreshAliveDatas();
             }
         }

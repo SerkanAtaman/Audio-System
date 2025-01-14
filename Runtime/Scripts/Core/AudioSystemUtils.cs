@@ -74,6 +74,7 @@ namespace SeroJob.AudioSystem
 
         public static void RefreshAliveDatas(this AudioClipContainer container, AudioSystemSettings settings = null)
         {
+            if (container == null) return;
             var volume = GetTargetVolume(container);
             var alives = container.GetAllAliveAudioData();
             if (alives == null) return;
