@@ -22,6 +22,7 @@ namespace SeroJob.AudioSystem.Editor
         SerializedProperty _syncAudioSourceTransformProperty;
         SerializedProperty _allowSimultaneousPlayProperty;
         SerializedProperty _chooseClipsRespectivelyProperty;
+        SerializedProperty _clearRespectiveDataWhenStoppedProperty;
         SerializedProperty _destroyPlayerWhenStoppedProperty;
         SerializedProperty _stateProperty;
 
@@ -46,6 +47,7 @@ namespace SeroJob.AudioSystem.Editor
             _syncAudioSourceTransformProperty = serializedObject.FindProperty("SyncAudioSourceTransform");
             _allowSimultaneousPlayProperty = serializedObject.FindProperty("AllowSimultaneousPlay");
             _chooseClipsRespectivelyProperty = serializedObject.FindProperty("ChooseClipsRespectively");
+            _clearRespectiveDataWhenStoppedProperty = serializedObject.FindProperty("ClearRespectiveDataWhenStopped");
             _destroyPlayerWhenStoppedProperty = serializedObject.FindProperty("DestroyPlayerWhenStopped");
             _stateProperty = serializedObject.FindProperty("_state");
         }
@@ -130,7 +132,13 @@ namespace SeroJob.AudioSystem.Editor
             if (_allowSimultaneousPlayProperty.boolValue)
             {
                 EditorGUILayout.PropertyField(_chooseClipsRespectivelyProperty,
-                new GUIContent("Choose Clips Respectively", "Decide whether the clips from collection should be choosen randomly or respectively"));
+                    new GUIContent("Choose Clips Respectively", "Decide whether the clips from collection should be choosen randomly or respectively"));
+
+                if (_chooseClipsRespectivelyProperty.boolValue)
+                {
+                    EditorGUILayout.PropertyField(_clearRespectiveDataWhenStoppedProperty,
+                        new GUIContent("Clear Respective Data When Stopped", "Should player keep it's respective containers data after its stopped"));
+                }
             }
 
             EditorGUILayout.PropertyField(_destroyPlayerWhenStoppedProperty,

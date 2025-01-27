@@ -33,6 +33,7 @@ namespace SeroJob.AudioSystem
         public AutoPlayMode PlayMode = AutoPlayMode.None;
         public bool AllowSimultaneousPlay = false;
         public bool ChooseClipsRespectively = false;
+        public bool ClearRespectiveDataWhenStopped = true;
         public bool SyncAudioSourceTransform = false;
         public bool DestroyPlayerWhenStopped = false;
 
@@ -174,8 +175,11 @@ namespace SeroJob.AudioSystem
             }
 
             AliveAudioDatas.Clear();
-            _respectiveContainers?.Clear();
-            _respectiveContainers = null;
+            if (ClearRespectiveDataWhenStopped)
+            {
+                _respectiveContainers?.Clear();
+                _respectiveContainers = null;
+            }
             SetState(State.Idle, isForced);
 
             if (DestroyPlayerWhenStopped && canDestroy) Destroy(gameObject);
