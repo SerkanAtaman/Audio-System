@@ -74,6 +74,7 @@ namespace SeroJob.AudioSystem
 
         public static void RefreshAliveDatas(this AudioClipContainer container, AudioSystemSettings settings = null)
         {
+            if (AudioSystemManager.Instance == null) return;
             if (container == null) return;
             var volume = GetTargetVolume(container);
             var alives = container.GetAllAliveAudioData();
@@ -95,6 +96,8 @@ namespace SeroJob.AudioSystem
 
         public static void Refresh(this AliveAudioData aliveAudioData, AudioSystemSettings settings = null)
         {
+            if (AudioSystemManager.Instance == null) return;
+
             if (settings == null) settings = AudioSystemManager.Instance.Settings;
 
             var category = settings.GetCategoryByID(aliveAudioData.Container.CategoryID);
@@ -110,6 +113,8 @@ namespace SeroJob.AudioSystem
 
         public static float GetTargetVolume(this AudioClipContainer container, AudioSystemSettings settings = null)
         {
+            if (AudioSystemManager.Instance == null) return 0;
+
             if (settings == null) settings = AudioSystemManager.Instance.Settings;
             var category = settings.GetCategoryByID(container.CategoryID);
             var volume = container.BaseVolume;
@@ -124,6 +129,8 @@ namespace SeroJob.AudioSystem
 
         public static AliveAudioData GetLatestAliveAudioData(this AudioClipContainer container)
         {
+            if (AudioSystemManager.Instance == null) return null;
+
             var alives = AudioSystemManager.Instance.GetAliveDatas(container);
             if (alives.Count == 0) return null;
 
@@ -132,16 +139,22 @@ namespace SeroJob.AudioSystem
 
         public static List<AliveAudioData> GetAllAliveAudioData(this AudioClipContainer container)
         {
+            if (AudioSystemManager.Instance == null) return null;
+
             return AudioSystemManager.Instance.GetAliveDatas(container);
         }
 
         public static AudioClipContainer GetContainerByID(uint containerID)
         {
+            if (AudioSystemManager.Instance == null) return null;
+
             return AudioSystemManager.Instance.Library.GetContainerFromID(containerID);
         }
 
         public static AliveAudioData Play(this AudioClipContainer container, AudioSource customSource = null)
         {
+            if (AudioSystemManager.Instance == null) return null;
+
             if (customSource == null) return AudioSystemManager.Instance.Play(container);
 
             return AudioSystemManager.Instance.Play(container, customSource);
@@ -149,6 +162,8 @@ namespace SeroJob.AudioSystem
 
         public static AliveAudioData Play(this AudioClipContainer container, IEnumerable<AudioClipEffect> effects)
         {
+            if (AudioSystemManager.Instance == null) return null;
+
             var data = AudioSystemManager.Instance.Play(container);
 
             if (effects == null) return data;
@@ -163,16 +178,22 @@ namespace SeroJob.AudioSystem
 
         public static void Pause(this AliveAudioData aliveAudioData)
         {
+            if (AudioSystemManager.Instance == null) return;
+
             AudioSystemManager.Instance.Pause(aliveAudioData);
         }
 
         public static void Resume(this AliveAudioData aliveAudioData)
         {
+            if (AudioSystemManager.Instance == null) return;
+
             AudioSystemManager.Instance.Resume(aliveAudioData);
         }
 
         public static void Stop(this AliveAudioData aliveAudioData)
         {
+            if (AudioSystemManager.Instance == null) return;
+
             AudioSystemManager.Instance.Stop(aliveAudioData);
         }
     }

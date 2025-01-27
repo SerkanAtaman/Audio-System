@@ -163,7 +163,8 @@ namespace SeroJob.AudioSystem
 
         public void Stop(bool canDestroy = true, bool isForced = true)
         {
-            AudioSystemManager.Instance.OnAudioDied -= OnAudioDied;
+            if (AudioSystemManager.Instance != null)
+                AudioSystemManager.Instance.OnAudioDied -= OnAudioDied;
 
             foreach (var item in AliveAudioDatas)
             {

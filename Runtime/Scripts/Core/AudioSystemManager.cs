@@ -11,13 +11,7 @@ namespace SeroJob.AudioSystem
         {
             get
             {
-                if (_instance == null)
-                {
-                    var manager = new GameObject("AudioSystemManager");
-                    var comp = manager.AddComponent<AudioSystemManager>();
-                    comp.Init();
-                }
-
+                if (!IsInitialized) Init();
                 return _instance;
             }
         }
@@ -26,7 +20,7 @@ namespace SeroJob.AudioSystem
         public AudioSystemLibraryCollection Library { get; private set; }
         public AudioSystemSettings Settings { get; private set; }
 
-        public bool IsInitialized { get; private set; } = false;
+        public static bool IsInitialized { get; private set; } = false;
 
         public Action<AliveAudioData> OnAudioDied;
 
@@ -35,11 +29,6 @@ namespace SeroJob.AudioSystem
         private List<AliveAudioData> _deadAudioData;
 
         private float _lastUpdateTime;
-
-        private void Awake()
-        {
-            Init();
-        }
 
         private void LateUpdate()
         {
@@ -64,34 +53,34 @@ namespace SeroJob.AudioSystem
             _deadAudioData.Clear();
         }
 
-        private void OnEnable()
-        {
-            Settings.OnUpdated += OnSettingsUpdated;
-        }
-
-        private void OnDisable()
+        private void OnDestroy()
         {
             Settings.OnUpdated -= OnSettingsUpdated;
+            OnAudioDied = null;
             KillAll();
+            if (_instance == this) _instance = null;
         }
 
-        private void Init()
+        public static void Init()
         {
             if (IsInitialized) return;
+            if (_instance != null) return;
 
-            Settings = GetSettings();
-            Library = new(GetLibrary());
-
-            _audioSourcePool = new(transform, Settings.AudioSourcePoolStartSize);
-            _aliveAudioData = new();
-            _deadAudioData = new();
-            _lastUpdateTime = 0;
+            var manager = new GameObject("AudioSystemManager");
+            var comp = manager.AddComponent<AudioSystemManager>();
+            comp.Settings = GetSettings();
+            comp.Settings.OnUpdated += comp.OnSettingsUpdated;
+            comp.Library = new(GetLibrary());
+            comp._audioSourcePool = new(comp.transform, comp.Settings.AudioSourcePoolStartSize);
+            comp._aliveAudioData = new();
+            comp._deadAudioData = new();
+            comp._lastUpdateTime = 0;
 
             IsInitialized = true;
-            _instance = this;
+            _instance = comp;
 
-            AudioSystemUtils.SetAllCategoryMuteStates(false, Settings);
-            DontDestroyOnLoad(gameObject);
+            AudioSystemUtils.SetAllCategoryMuteStates(false, comp.Settings);
+            DontDestroyOnLoad(comp.gameObject);
         }
 
         private void OnSettingsUpdated(AudioSystemSettings settings)
@@ -228,14 +217,14 @@ namespace SeroJob.AudioSystem
             return result;
         }
 
-        private AudioContainerLibrary GetLibrary()
+        private static AudioContainerLibrary GetLibrary()
         {
             var path = "Serojob-AudioSystem/AudioContainerLibrary";
 
             return Resources.Load<AudioContainerLibrary>(path);
         }
 
-        private AudioSystemSettings GetSettings()
+        private static AudioSystemSettings GetSettings()
         {
             var path = "Serojob-AudioSystem/AudioSystemSettings";
 
