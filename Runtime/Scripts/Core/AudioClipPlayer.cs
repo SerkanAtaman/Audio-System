@@ -52,6 +52,7 @@ namespace SeroJob.AudioSystem
 
         [SerializeField] private float _volume = 1f;
         [SerializeField] private State _state;
+        [SerializeField] private List<AudioClipContainer> _respectiveContainers = null;
 
         public float Volume
         {
@@ -82,7 +83,7 @@ namespace SeroJob.AudioSystem
         }
         private List<AliveAudioData> _aliveAudioDatas;
 
-        private List<AudioClipContainer> _respectiveContainers = null;
+        
 
         private void Awake()
         {

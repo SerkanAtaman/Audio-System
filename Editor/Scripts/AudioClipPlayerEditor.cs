@@ -25,10 +25,12 @@ namespace SeroJob.AudioSystem.Editor
         SerializedProperty _clearRespectiveDataWhenStoppedProperty;
         SerializedProperty _destroyPlayerWhenStoppedProperty;
         SerializedProperty _stateProperty;
+        SerializedProperty _respectiveContainersProperty;
 
         private double _lastIdentifierCheckTime;
         private bool _lastIdentifierValidationResult;
         private static bool _eventsFoldout = false;
+        private static bool _debugFoldout = false;
 
         private void OnEnable()
         {
@@ -50,6 +52,7 @@ namespace SeroJob.AudioSystem.Editor
             _clearRespectiveDataWhenStoppedProperty = serializedObject.FindProperty("ClearRespectiveDataWhenStopped");
             _destroyPlayerWhenStoppedProperty = serializedObject.FindProperty("DestroyPlayerWhenStopped");
             _stateProperty = serializedObject.FindProperty("_state");
+            _respectiveContainersProperty = serializedObject.FindProperty("_respectiveContainers");
         }
 
         public override UnityEngine.UIElements.VisualElement CreateInspectorGUI()
@@ -149,10 +152,18 @@ namespace SeroJob.AudioSystem.Editor
             if (targets.Length == 1)
             {
                 var player = (AudioClipPlayer)target;
-                GUI.enabled = false;
-                EditorGUILayout.PropertyField(_stateProperty,
-                    new GUIContent("Current State"));
-                GUI.enabled = true;
+                _debugFoldout = EditorGUILayout.Foldout(_debugFoldout, new GUIContent("Debug"));
+
+                if (_debugFoldout)
+                {
+                    GUI.enabled = false;
+                    EditorGUILayout.PropertyField(_stateProperty, new GUIContent("Current State"));
+                    if (_allowSimultaneousPlayProperty.boolValue && _chooseClipsRespectivelyProperty.boolValue && EditorApplication.isPlaying)
+                    {
+                        EditorGUILayout.PropertyField(_respectiveContainersProperty, new GUIContent("Respective Containers"));
+                    }
+                    GUI.enabled = true;
+                }
 
                 EditorGUILayout.Space(10);
 
