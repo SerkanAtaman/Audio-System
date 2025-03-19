@@ -114,7 +114,7 @@ namespace SeroJob.AudioSystem
 
         public void Play()
         {
-            if (!enabled || !gameObject.activeSelf) return;
+            if (!isActiveAndEnabled) return;
             if (_state != State.Idle && !AllowSimultaneousPlay) return;
 
             var container = GetContainerToPlay();
