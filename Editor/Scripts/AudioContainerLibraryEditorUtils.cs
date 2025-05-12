@@ -87,8 +87,8 @@ namespace SeroJob.AudioSystem.Editor
                     false, true, false, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
             }
 
-            var entry = addressableSettings.CreateOrMoveEntry(assetGuid, group, true);
-            entry.address = library.name;
+            currentEntry = addressableSettings.CreateOrMoveEntry(assetGuid, group, true);
+
             AssignLibraryAddressableLabel(currentEntry);
 
             AssetDatabase.SaveAssetIfDirty(addressableSettings);
