@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEditor.AddressableAssets;
 using UnityEngine;
+using UnityEditor.AddressableAssets.Settings;
 
 namespace SeroJob.AudioSystem.Editor
 {
@@ -30,7 +31,7 @@ namespace SeroJob.AudioSystem.Editor
                 result = AssetDatabase.LoadAssetAtPath<AudioContainerLibrary>(AssetDatabase.GUIDToAssetPath(libraryGuids[0]));
             }
 
-            AssignLibraryAssetToAddressables(result);
+            if (result != null) AssignLibraryAssetToAddressables(result);
 
             return result;
         }
@@ -71,7 +72,11 @@ namespace SeroJob.AudioSystem.Editor
             var assetGuid = AssetDatabase.AssetPathToGUID(assetPath);
             var currentEntry = addressableSettings.FindAssetEntry(assetGuid);
 
-            if (currentEntry != null) return;
+            if (currentEntry != null)
+            {
+                AssignLibraryAddressableLabel(currentEntry);
+                return;
+            }
 
             var targetGroupName = "Serojob-Audio-System";
             var group = addressableSettings.FindGroup(targetGroupName);
@@ -84,10 +89,37 @@ namespace SeroJob.AudioSystem.Editor
 
             var entry = addressableSettings.CreateOrMoveEntry(assetGuid, group, true);
             entry.address = library.name;
-            entry.SetLabel("SerojobAudioSystemLibrary", true);
+            AssignLibraryAddressableLabel(currentEntry);
 
-            EditorUtility.SetDirty(addressableSettings);
             AssetDatabase.SaveAssetIfDirty(addressableSettings);
+        }
+
+        public static void AssignLibraryAddressableLabel(AddressableAssetEntry addressableEntry)
+        {
+            if (addressableEntry == null) return;
+
+            if (addressableEntry.labels == null || addressableEntry.labels.Count < 1)
+            {
+                addressableEntry.SetLabel("SerojobAudioSystemLibrary", true);
+            }
+            else if (addressableEntry.labels.Count > 1)
+            {
+                addressableEntry.labels.Clear();
+                addressableEntry.SetLabel("SerojobAudioSystemLibrary", true);
+            }
+            else if (!addressableEntry.labels.Contains("SerojobAudioSystemLibrary"))
+            {
+                addressableEntry.labels.Clear();
+                addressableEntry.SetLabel("SerojobAudioSystemLibrary", true);
+            }
+            else
+            {
+                return;
+            }
+
+            EditorUtility.SetDirty(addressableEntry.parentGroup);
+            EditorUtility.SetDirty(addressableEntry.parentGroup.Settings);
+            AssetDatabase.SaveAssetIfDirty(addressableEntry.parentGroup);
         }
 
         [MenuItem("SeroJob/AudioSystem/FindAllContainers")]

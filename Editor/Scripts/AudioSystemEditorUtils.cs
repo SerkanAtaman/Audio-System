@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
 
@@ -81,7 +82,7 @@ namespace SeroJob.AudioSystem.Editor
                 result = AssetDatabase.LoadAssetAtPath<AudioSystemSettings>(AssetDatabase.GUIDToAssetPath(settingsGuids[0]));
             }
 
-            AssignSettingsAssetToAddressables(result);
+            if (result != null) AssignSettingsAssetToAddressables(result);
 
             return result;
         }
@@ -123,7 +124,11 @@ namespace SeroJob.AudioSystem.Editor
             var assetGuid = AssetDatabase.AssetPathToGUID(assetPath);
             var currentEntry = addressableSettings.FindAssetEntry(assetGuid);
 
-            if (currentEntry != null) return;
+            if (currentEntry != null)
+            {
+                AssignSettingsAddressableLabel(currentEntry);
+                return;
+            }
 
             var targetGroupName = "Serojob-Audio-System";
             var group = addressableSettings.FindGroup(targetGroupName);
@@ -136,10 +141,39 @@ namespace SeroJob.AudioSystem.Editor
 
             var entry = addressableSettings.CreateOrMoveEntry(assetGuid, group, true);
             entry.address = settings.name;
-            entry.SetLabel("SerojobAudioSystemSettings", true);
+
+            AssignSettingsAddressableLabel(currentEntry);
 
             EditorUtility.SetDirty(addressableSettings);
             AssetDatabase.SaveAssetIfDirty(addressableSettings);
+        }
+
+        public static void AssignSettingsAddressableLabel(AddressableAssetEntry addressableEntry)
+        {
+            if (addressableEntry == null) return;
+
+            if (addressableEntry.labels == null || addressableEntry.labels.Count < 1)
+            {
+                addressableEntry.SetLabel("SerojobAudioSystemSettings", true);
+            }
+            else if (addressableEntry.labels.Count > 1)
+            {
+                addressableEntry.labels.Clear();
+                addressableEntry.SetLabel("SerojobAudioSystemSettings", true);
+            }
+            else if (!addressableEntry.labels.Contains("SerojobAudioSystemSettings"))
+            {
+                addressableEntry.labels.Clear();
+                addressableEntry.SetLabel("SerojobAudioSystemSettings", true);
+            }
+            else
+            {
+                return;
+            }
+
+            EditorUtility.SetDirty(addressableEntry.parentGroup);
+            EditorUtility.SetDirty(addressableEntry.parentGroup.Settings);
+            AssetDatabase.SaveAssetIfDirty(addressableEntry.parentGroup);
         }
 
         public static string[] GetAllCategoryNames()
