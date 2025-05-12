@@ -13,7 +13,10 @@ namespace SeroJob.AudioSystem
             {
                 if (!IsInitialized)
                 {
+                    if (IsQuitting) return null;
+
                     Debug.LogError("AudioSystemManager is not initialized! Make sure to initialize Audio System by calling AudioSystemManager.Init()");
+
                     return null;
                 }
                 return _instance;
@@ -25,6 +28,7 @@ namespace SeroJob.AudioSystem
         public AudioSystemSettings Settings { get; private set; }
 
         public static bool IsInitialized { get; private set; } = false;
+        public static bool IsQuitting { get; private set; } = false;
 
         public Action<AliveAudioData> OnAudioDied;
 
@@ -72,9 +76,16 @@ namespace SeroJob.AudioSystem
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
-        private static void Reset()
+        private static void Clear()
         {
             IsInitialized = false;
+            IsQuitting = false;
+            Application.quitting += OnApplicationQuitting;
+        }
+
+        private static void OnApplicationQuitting()
+        {
+            IsQuitting = true;
         }
 
         public static async System.Threading.Tasks.Task Init()
