@@ -82,6 +82,8 @@ namespace SeroJob.AudioSystem
             if (IsInitialized) return;
             if (_instance != null) return;
 
+            Debug.Log("Initializing Audio System");
+
             var manager = new GameObject("AudioSystemManager");
             var comp = manager.AddComponent<AudioSystemManager>();
             var settings = await GetSettings();
@@ -100,6 +102,8 @@ namespace SeroJob.AudioSystem
 
             AudioSystemUtils.SetAllCategoryMuteStates(false, comp.Settings);
             DontDestroyOnLoad(comp.gameObject);
+
+            Debug.Log("Audio System is now initialized");
         }
 
         private void OnSettingsUpdated(AudioSystemSettings settings)
