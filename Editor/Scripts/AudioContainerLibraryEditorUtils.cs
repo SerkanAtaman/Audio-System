@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using UnityEditor;
+using UnityEditor.AddressableAssets.Settings.GroupSchemas;
+using UnityEditor.AddressableAssets;
 using UnityEngine;
 
 namespace SeroJob.AudioSystem.Editor
@@ -11,26 +13,31 @@ namespace SeroJob.AudioSystem.Editor
     {
         public static AudioContainerLibrary GetLibrary(bool createIfNotExist = true)
         {
-            var path = "Assets/Resources/Serojob-AudioSystem/AudioContainerLibrary.asset";
-            var directory = Path.GetDirectoryName(path);
+            AudioContainerLibrary result = null;
+            var libraryGuids = AssetDatabase.FindAssets("t:AudioContainerLibrary");
 
-            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
-
-            var asset = AssetDatabase.LoadAssetAtPath<AudioContainerLibrary>(path);
-
-            if (asset == null)
+            if (libraryGuids == null || libraryGuids.Length < 1)
             {
-                if (!createIfNotExist) return null;
+                if (createIfNotExist) result = CreateLibraryAsset();
+            }
+            else
+            {
+                for (int i = 1; i < libraryGuids.Length; i++)
+                {
+                    Debug.LogWarning("Pleaes delete the extra Audio Container Library asset at: " + AssetDatabase.GUIDToAssetPath(libraryGuids[i]));
+                }
 
-                return CreateLibraryAsset();
+                result = AssetDatabase.LoadAssetAtPath<AudioContainerLibrary>(AssetDatabase.GUIDToAssetPath(libraryGuids[0]));
             }
 
-            return asset;
+            AssignLibraryAssetToAddressables(result);
+
+            return result;
         }
 
         public static AudioContainerLibrary CreateLibraryAsset()
         {
-            var path = "Assets/Resources/Serojob-AudioSystem/AudioContainerLibrary.asset";
+            var path = "Assets/Serojob-AudioSystem/AudioContainerLibrary.asset";
             var directory = Path.GetDirectoryName(path);
 
             if (File.Exists(path))
@@ -48,6 +55,39 @@ namespace SeroJob.AudioSystem.Editor
             AssetDatabase.Refresh();
 
             return AssetDatabase.LoadAssetAtPath<AudioContainerLibrary>(path);
+        }
+
+        public static void AssignLibraryAssetToAddressables(AudioContainerLibrary library)
+        {
+            var addressableSettings = AddressableAssetSettingsDefaultObject.Settings;
+
+            if (addressableSettings == null)
+            {
+                Debug.LogError("addressable settings is nul");
+                return;
+            }
+
+            var assetPath = AssetDatabase.GetAssetPath(library);
+            var assetGuid = AssetDatabase.AssetPathToGUID(assetPath);
+            var currentEntry = addressableSettings.FindAssetEntry(assetGuid);
+
+            if (currentEntry != null) return;
+
+            var targetGroupName = "Serojob-Audio-System";
+            var group = addressableSettings.FindGroup(targetGroupName);
+
+            if (group == null)
+            {
+                group = addressableSettings.CreateGroup(targetGroupName,
+                    false, true, false, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
+            }
+
+            var entry = addressableSettings.CreateOrMoveEntry(assetGuid, group, true);
+            entry.address = library.name;
+            entry.SetLabel("SerojobAudioSystemLibrary", true);
+
+            EditorUtility.SetDirty(addressableSettings);
+            AssetDatabase.SaveAssetIfDirty(addressableSettings);
         }
 
         [MenuItem("SeroJob/AudioSystem/FindAllContainers")]

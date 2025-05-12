@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
 
 namespace SeroJob.AudioSystem.Editor
@@ -62,26 +64,31 @@ namespace SeroJob.AudioSystem.Editor
 
         public static AudioSystemSettings GetSettings(bool createIfNotExist = true)
         {
-            var path = "Assets/Resources/Serojob-AudioSystem/AudioSystemSettings.asset";
-            var directory = Path.GetDirectoryName(path);
+            AudioSystemSettings result = null;
+            var settingsGuids = AssetDatabase.FindAssets("t:AudioSystemSettings");
 
-            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
-
-            var asset = AssetDatabase.LoadAssetAtPath<AudioSystemSettings>(path);
-
-            if (asset == null)
+            if (settingsGuids == null || settingsGuids.Length < 1)
             {
-                if (!createIfNotExist) return null;
+                if (createIfNotExist) result = CreateSettingsAsset(); 
+            }
+            else
+            {
+                for (int i = 1; i < settingsGuids.Length; i++)
+                {
+                    Debug.LogWarning("Pleaes delete the extra Audio System Settings asset at: " + AssetDatabase.GUIDToAssetPath(settingsGuids[i]));
+                }
 
-                return CreateSettingsAsset();
+                result = AssetDatabase.LoadAssetAtPath<AudioSystemSettings>(AssetDatabase.GUIDToAssetPath(settingsGuids[0]));
             }
 
-            return asset;
+            AssignSettingsAssetToAddressables(result);
+
+            return result;
         }
 
         public static AudioSystemSettings CreateSettingsAsset()
         {
-            var path = "Assets/Resources/Serojob-AudioSystem/AudioSystemSettings.asset";
+            var path = "Assets/Serojob-AudioSystem/AudioSystemSettings.asset";
             var directory = Path.GetDirectoryName(path);
 
             if (File.Exists(path))
@@ -100,6 +107,39 @@ namespace SeroJob.AudioSystem.Editor
             AssetDatabase.Refresh();
 
             return AssetDatabase.LoadAssetAtPath<AudioSystemSettings>(path);
+        }
+
+        public static void AssignSettingsAssetToAddressables(AudioSystemSettings settings)
+        {
+            var addressableSettings = AddressableAssetSettingsDefaultObject.Settings;
+
+            if (addressableSettings == null)
+            {
+                Debug.LogError("addressable settings is nul");
+                return;
+            }
+
+            var assetPath = AssetDatabase.GetAssetPath(settings);
+            var assetGuid = AssetDatabase.AssetPathToGUID(assetPath);
+            var currentEntry = addressableSettings.FindAssetEntry(assetGuid);
+
+            if (currentEntry != null) return;
+
+            var targetGroupName = "Serojob-Audio-System";
+            var group = addressableSettings.FindGroup(targetGroupName);
+
+            if (group == null)
+            {
+                group = addressableSettings.CreateGroup(targetGroupName,
+                    false, true, false, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
+            }
+
+            var entry = addressableSettings.CreateOrMoveEntry(assetGuid, group, true);
+            entry.address = settings.name;
+            entry.SetLabel("SerojobAudioSystemSettings", true);
+
+            EditorUtility.SetDirty(addressableSettings);
+            AssetDatabase.SaveAssetIfDirty(addressableSettings);
         }
 
         public static string[] GetAllCategoryNames()

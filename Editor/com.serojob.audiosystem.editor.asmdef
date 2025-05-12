@@ -2,7 +2,9 @@
     "name": "serojob-audio-system-editor",
     "rootNamespace": "",
     "references": [
-        "serojob-audio-system-runtime"
+        "serojob-audio-system-runtime",
+        "Unity.Addressables.Editor",
+        "Unity.Addressables"
     ],
     "includePlatforms": [
         "Editor"
