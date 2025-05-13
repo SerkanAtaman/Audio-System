@@ -11,6 +11,8 @@ namespace SeroJob.AudioSystem
         {
             get
             {
+                if (IsQuitting) return _instance;
+
                 if (!IsInitialized)
                 {
                     if (!IsInitializing && Application.isPlaying)
@@ -25,6 +27,7 @@ namespace SeroJob.AudioSystem
 
                     return null;
                 }
+
                 return _instance;
             }
         }
@@ -35,6 +38,7 @@ namespace SeroJob.AudioSystem
 
         public static bool IsInitialized { get; private set; } = false;
         public static bool IsInitializing { get; private set; } = false;
+        public static bool IsQuitting { get; private set; } = false;
 
         public Action<AliveAudioData> OnAudioDied;
 
@@ -87,6 +91,13 @@ namespace SeroJob.AudioSystem
         {
             IsInitialized = false;
             IsInitializing = false;
+            IsQuitting = false;
+            Application.quitting += OnApplicationQuitting;
+        }
+
+        private static void OnApplicationQuitting()
+        {
+            IsQuitting = true;
         }
 
         public static async System.Threading.Tasks.Task Init()
