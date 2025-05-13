@@ -13,9 +13,15 @@ namespace SeroJob.AudioSystem
             {
                 if (!IsInitialized)
                 {
-                    if (IsQuitting) return null;
-
-                    Debug.LogError("AudioSystemManager is not initialized! Make sure to initialize Audio System by calling AudioSystemManager.Init()");
+                    if (!IsInitializing && Application.isPlaying)
+                    {
+#if UNITY_EDITOR
+                        EditorInit();
+                        return _instance;
+#else
+                        Init();
+#endif
+                    }
 
                     return null;
                 }
@@ -28,7 +34,7 @@ namespace SeroJob.AudioSystem
         public AudioSystemSettings Settings { get; private set; }
 
         public static bool IsInitialized { get; private set; } = false;
-        public static bool IsQuitting { get; private set; } = false;
+        public static bool IsInitializing { get; private set; } = false;
 
         public Action<AliveAudioData> OnAudioDied;
 
@@ -72,6 +78,7 @@ namespace SeroJob.AudioSystem
             {
                 _instance = null;
                 IsInitialized = false;
+                IsInitializing = false;
             }
         }
 
@@ -79,21 +86,17 @@ namespace SeroJob.AudioSystem
         private static void Clear()
         {
             IsInitialized = false;
-            IsQuitting = false;
-            Application.quitting += OnApplicationQuitting;
-        }
-
-        private static void OnApplicationQuitting()
-        {
-            IsQuitting = true;
+            IsInitializing = false;
         }
 
         public static async System.Threading.Tasks.Task Init()
         {
-            if (IsInitialized) return;
+            if (IsInitialized || IsInitializing) return;
             if (_instance != null) return;
 
             Debug.Log("Initializing Audio System");
+
+            IsInitializing = true;
 
             var manager = new GameObject("AudioSystemManager");
             var comp = manager.AddComponent<AudioSystemManager>();
@@ -118,6 +121,7 @@ namespace SeroJob.AudioSystem
             comp._lastUpdateTime = 0;
 
             IsInitialized = true;
+            IsInitializing = false;
 
             AudioSystemUtils.SetAllCategoryMuteStates(false, comp.Settings);
             DontDestroyOnLoad(comp.gameObject);
@@ -284,5 +288,57 @@ namespace SeroJob.AudioSystem
                 _instance.Library = new AudioSystemLibraryCollection(obj.Result);
             }
         }
+
+        #region EDITOR
+#if UNITY_EDITOR
+        public static void EditorInit()
+        {
+            if (IsInitialized || IsInitializing) return;
+            if (_instance != null) return;
+
+            Debug.Log("Initializing Audio System");
+
+            IsInitializing = true;
+
+            var manager = new GameObject("AudioSystemManager");
+            var comp = manager.AddComponent<AudioSystemManager>();
+
+            comp.Settings = GetEditorSettings();
+            comp.Library = new(GetEditorLibrary());
+            comp.Settings.OnUpdated += comp.OnSettingsUpdated;
+            comp._audioSourcePool = new(comp.transform, comp.Settings.AudioSourcePoolStartSize);
+            comp._aliveAudioData = new();
+            comp._deadAudioData = new();
+            comp._lastUpdateTime = 0;
+
+            _instance = comp;
+            IsInitialized = true;
+            IsInitializing = false;
+
+            AudioSystemUtils.SetAllCategoryMuteStates(false, comp.Settings);
+            DontDestroyOnLoad(comp.gameObject);
+
+            Debug.Log("Audio System is now initialized");
+        }
+
+        private static AudioSystemSettings GetEditorSettings()
+        {
+            var guids = UnityEditor.AssetDatabase.FindAssets("t:AudioSystemSettings");
+
+            if (guids == null || guids.Length < 1) return null;
+
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<AudioSystemSettings>(UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]));
+        }
+
+        private static AudioContainerLibrary GetEditorLibrary()
+        {
+            var guids = UnityEditor.AssetDatabase.FindAssets("t:AudioContainerLibrary");
+
+            if (guids == null || guids.Length < 1) return null;
+
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<AudioContainerLibrary>(UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]));
+        }
+#endif
+#endregion
     }
 }
