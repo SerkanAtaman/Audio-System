@@ -96,26 +96,9 @@ namespace SeroJob.AudioSystem.Editor
 
         public static void AssignLibraryAddressableLabel(AddressableAssetEntry addressableEntry)
         {
-            if (addressableEntry == null) return;
+            if (addressableEntry == null || addressableEntry.labels.Contains("SerojobAudioSystemLibrary")) return;
 
-            if (addressableEntry.labels == null || addressableEntry.labels.Count < 1)
-            {
-                addressableEntry.SetLabel("SerojobAudioSystemLibrary", true);
-            }
-            else if (addressableEntry.labels.Count > 1)
-            {
-                addressableEntry.labels.Clear();
-                addressableEntry.SetLabel("SerojobAudioSystemLibrary", true);
-            }
-            else if (!addressableEntry.labels.Contains("SerojobAudioSystemLibrary"))
-            {
-                addressableEntry.labels.Clear();
-                addressableEntry.SetLabel("SerojobAudioSystemLibrary", true);
-            }
-            else
-            {
-                return;
-            }
+            addressableEntry.SetLabel("SerojobAudioSystemLibrary", true, true);
 
             EditorUtility.SetDirty(addressableEntry.parentGroup);
             EditorUtility.SetDirty(addressableEntry.parentGroup.Settings);
@@ -145,9 +128,10 @@ namespace SeroJob.AudioSystem.Editor
             Debug.Log($"{assets.Length} amount of AudioClipContainers have been found and added to Audio System Library");
         }
 
-        public static void Update(AudioClipContainer clipContainer)
+        public static void Update(AudioClipContainer clipContainer, AudioContainerLibrary library = null)
         {
-            var library = GetLibrary();
+            if (library == null) library = GetLibrary();
+
             if (!library.Containers.Contains(clipContainer))
             {
                 library.Containers.Add(clipContainer);
@@ -171,15 +155,15 @@ namespace SeroJob.AudioSystem.Editor
             AssetDatabase.SaveAssetIfDirty(library);
         }
 
-        public static bool IsIdentifierValid(uint identifier)
+        public static bool IsIdentifierValid(uint identifier, AudioContainerLibrary library = null)
         {
-            var library = GetLibrary();
+            if (library == null) library = GetLibrary();
             return library.SameIdentifierCount(identifier) <= 1;
         }
 
-        public static bool LibraryContainsIdentifier(uint identifier)
+        public static bool LibraryContainsIdentifier(uint identifier, AudioContainerLibrary library = null)
         {
-            var library = GetLibrary();
+            if (library == null) library = GetLibrary();
             return library.ContainsIdentifier(identifier);
         }
 
@@ -206,8 +190,10 @@ namespace SeroJob.AudioSystem.Editor
             return result;
         }
 
-        public static uint GenerateUniqueIdentifier()
+        public static uint GenerateUniqueIdentifier(AudioContainerLibrary library = null)
         {
+            if (library == null) library = GetLibrary();
+
             var randomBytes = new byte[32];
             bool idGenerated = false;
             uint result = 0;
@@ -218,7 +204,7 @@ namespace SeroJob.AudioSystem.Editor
                 {
                     rng.GetBytes(randomBytes);
                     result = BitConverter.ToUInt32(randomBytes, 0);
-                    idGenerated = !LibraryContainsIdentifier(result);
+                    idGenerated = !LibraryContainsIdentifier(result, library);
                 }
             }
 

@@ -149,35 +149,19 @@ namespace SeroJob.AudioSystem.Editor
 
         public static void AssignSettingsAddressableLabel(AddressableAssetEntry addressableEntry)
         {
-            if (addressableEntry == null) return;
+            if (addressableEntry == null || addressableEntry.labels.Contains("SerojobAudioSystemSettings")) return;
 
-            if (addressableEntry.labels == null || addressableEntry.labels.Count < 1)
-            {
-                addressableEntry.SetLabel("SerojobAudioSystemSettings", true);
-            }
-            else if (addressableEntry.labels.Count > 1)
-            {
-                addressableEntry.labels.Clear();
-                addressableEntry.SetLabel("SerojobAudioSystemSettings", true);
-            }
-            else if (!addressableEntry.labels.Contains("SerojobAudioSystemSettings"))
-            {
-                addressableEntry.labels.Clear();
-                addressableEntry.SetLabel("SerojobAudioSystemSettings", true);
-            }
-            else
-            {
-                return;
-            }
+            addressableEntry.SetLabel("SerojobAudioSystemSettings", true, true);
 
             EditorUtility.SetDirty(addressableEntry.parentGroup);
             EditorUtility.SetDirty(addressableEntry.parentGroup.Settings);
             AssetDatabase.SaveAssetIfDirty(addressableEntry.parentGroup);
         }
 
-        public static string[] GetAllCategoryNames()
+        public static string[] GetAllCategoryNames(AudioSystemSettings settings = null)
         {
-            var settings = GetSettings();
+            if (settings == null) settings = GetSettings();
+
             settings.Categories ??= new AudioCategory[0];
             string[] result = new string[settings.Categories.Length + 1];
 
@@ -191,9 +175,10 @@ namespace SeroJob.AudioSystem.Editor
             return result;
         }
 
-        public static AudioCategory? GetCategoryByName(string name)
+        public static AudioCategory? GetCategoryByName(string name, AudioSystemSettings settings = null)
         {
-            var settings = GetSettings();
+            if (settings == null) settings = GetSettings();
+
             foreach (var category in settings.Categories)
             {
                 if (string.Equals(category.Name, name)) return category;
@@ -218,9 +203,9 @@ namespace SeroJob.AudioSystem.Editor
             return result;
         }
 
-        public static string[] GetAllTagNames()
+        public static string[] GetAllTagNames(AudioSystemSettings settings = null)
         {
-            var settings = GetSettings();
+            if (settings == null) settings = GetSettings();
             settings.Tags ??= new string[0];
             string[] result = new string[settings.Tags.Length + 1];
 

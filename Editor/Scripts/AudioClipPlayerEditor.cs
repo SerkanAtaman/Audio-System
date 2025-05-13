@@ -27,6 +27,9 @@ namespace SeroJob.AudioSystem.Editor
         SerializedProperty _stateProperty;
         SerializedProperty _respectiveContainersProperty;
 
+        AudioContainerLibrary _library;
+        AudioSystemSettings _settings;
+
         private double _lastIdentifierCheckTime;
         private bool _lastIdentifierValidationResult;
         private static bool _eventsFoldout = false;
@@ -53,6 +56,9 @@ namespace SeroJob.AudioSystem.Editor
             _destroyPlayerWhenStoppedProperty = serializedObject.FindProperty("DestroyPlayerWhenStopped");
             _stateProperty = serializedObject.FindProperty("_state");
             _respectiveContainersProperty = serializedObject.FindProperty("_respectiveContainers");
+
+            _library = AudioContainerLibraryEditorUtils.GetLibrary();
+            _settings = AudioSystemEditorUtils.GetSettings();
         }
 
         public override UnityEngine.UIElements.VisualElement CreateInspectorGUI()
@@ -96,7 +102,7 @@ namespace SeroJob.AudioSystem.Editor
             {
                 _containersIdsProperty.ClearArray();
                 _containersProperty.ClearArray();
-                var tags = AudioSystemEditorUtils.GetAllTagNames();
+                var tags = AudioSystemEditorUtils.GetAllTagNames(_settings);
 
                 var tagID = _tagIDProperty.uintValue;
                 var selectedTag = EditorGUILayout.Popup(new GUIContent("Tag", "The tag of the container"), (int)tagID, tags);
@@ -204,7 +210,7 @@ namespace SeroJob.AudioSystem.Editor
 
             foreach(var id in player.ContainerIDs)
             {
-                if (!AudioContainerLibraryEditorUtils.LibraryContainsIdentifier(id))
+                if (!AudioContainerLibraryEditorUtils.LibraryContainsIdentifier(id, _library))
                 {
                     result = false;
                     break;

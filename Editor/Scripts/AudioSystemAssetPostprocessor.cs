@@ -4,7 +4,8 @@ namespace SeroJob.AudioSystem.Editor
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths, bool didDomainReload)
         {
-            AudioContainerLibraryEditorUtils.RemoveDeletedContainers(deletedAssets.Length);
+            if (deletedAssets != null && deletedAssets.Length > 0)
+                AudioContainerLibraryEditorUtils.RemoveDeletedContainers(deletedAssets.Length);
         }
     }
 }
