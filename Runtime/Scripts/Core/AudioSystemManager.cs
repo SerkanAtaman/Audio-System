@@ -97,19 +97,27 @@ namespace SeroJob.AudioSystem
 
             var manager = new GameObject("AudioSystemManager");
             var comp = manager.AddComponent<AudioSystemManager>();
-            var settings = await GetSettings();
-            var library = await GetLibrary();
 
-            comp.Settings = settings;
+            comp.Settings = null;
+            comp.Library = null;
+
+            _instance = comp;
+
+            StartGetSettingsTask();
+            StartGetLibraryTask();
+
+            while (comp.Library == null || comp.Settings == null)
+            {
+                await System.Threading.Tasks.Task.Delay(100);
+            }
+
             comp.Settings.OnUpdated += comp.OnSettingsUpdated;
-            comp.Library = new AudioSystemLibraryCollection(library);
             comp._audioSourcePool = new(comp.transform, comp.Settings.AudioSourcePoolStartSize);
             comp._aliveAudioData = new();
             comp._deadAudioData = new();
             comp._lastUpdateTime = 0;
 
             IsInitialized = true;
-            _instance = comp;
 
             AudioSystemUtils.SetAllCategoryMuteStates(false, comp.Settings);
             DontDestroyOnLoad(comp.gameObject);
@@ -251,28 +259,30 @@ namespace SeroJob.AudioSystem
             return result;
         }
 
-        private static async System.Threading.Tasks.Task<AudioSystemSettings> GetSettings()
+        private static void StartGetSettingsTask()
         {
-            var op = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<AudioSystemSettings>("SerojobAudioSystemSettings");
-
-            while (op.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.None || !op.IsDone)
-            {
-                await System.Threading.Tasks.Task.Delay(300);
-            }
-
-            return op.Result;
+            UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<AudioSystemSettings>("SerojobAudioSystemSettings").Completed += OnGetSettingsCompleted;
         }
 
-        private static async System.Threading.Tasks.Task<AudioContainerLibrary> GetLibrary()
+        private static void OnGetSettingsCompleted(UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<AudioSystemSettings> obj)
         {
-            var op = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<AudioContainerLibrary>("SerojobAudioSystemLibrary");
-
-            while (op.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.None || !op.IsDone)
+            if (_instance != null)
             {
-                await System.Threading.Tasks.Task.Delay(300);
+                _instance.Settings = obj.Result;
             }
+        }
 
-            return op.Result;
+        private static void StartGetLibraryTask()
+        {
+            UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<AudioContainerLibrary>("SerojobAudioSystemLibrary").Completed += OnGetLibraryCompleted;
+        }
+
+        private static void OnGetLibraryCompleted(UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<AudioContainerLibrary> obj)
+        {
+            if (_instance != null)
+            {
+                _instance.Library = new AudioSystemLibraryCollection(obj.Result);
+            }
         }
     }
 }
