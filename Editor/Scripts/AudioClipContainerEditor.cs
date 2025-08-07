@@ -115,6 +115,31 @@ namespace SeroJob.AudioSystem.Editor
                 var wnd = EditorWindow.GetWindow<EditTagsWindow>();
                 wnd.titleContent = new GUIContent("Tags Window");
             }
+
+            if (Application.isPlaying)
+            {
+                if (GUILayout.Button("Play"))
+                {
+                    if (AudioSystemManager.Instance && audioClipContainer && audioClipContainer.AudioClip != null)
+                    {
+                        AudioSystemManager.Instance.Play(audioClipContainer);
+                    }
+                }
+                if (GUILayout.Button("Stop"))
+                {
+                    if (AudioSystemManager.Instance && audioClipContainer && audioClipContainer.AudioClip != null)
+                    {
+                        var datas = audioClipContainer.GetAllAliveAudioData();
+                        if (datas != null)
+                        {
+                            foreach (var data in datas)
+                            {
+                                if(data != null) AudioSystemManager.Instance.Stop(data);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void DrawMultipleInspectors()
