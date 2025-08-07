@@ -1,6 +1,6 @@
 {
   "name": "serojob-audio-system",
-  "version": "1.5.9",
+  "version": "1.5.10",
   "displayName": "Audio System",
   "description": "Simple Auido Clip Playing System",
   "unity": "2021.3",
