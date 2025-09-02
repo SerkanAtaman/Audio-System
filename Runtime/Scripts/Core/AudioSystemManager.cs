@@ -153,12 +153,17 @@ namespace SeroJob.AudioSystem
         {
             if (container == null) return null;
 
-            if (audioSource == null) audioSource = _audioSourcePool.Pull();
+            var isCustomSource = false;
+            if (audioSource == null)
+            {
+                audioSource = _audioSourcePool.Pull();
+                isCustomSource = true;
+            }
 
             audioSource.clip = container.AudioClip;
             audioSource.gameObject.SetActive(true);
 
-            var aliveData = new AliveAudioData(container, audioSource, false);
+            var aliveData = new AliveAudioData(container, audioSource, isCustomSource);
             _aliveAudioData.Add(aliveData);
 
             aliveData.Refresh();
