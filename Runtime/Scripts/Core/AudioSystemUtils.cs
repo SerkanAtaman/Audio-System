@@ -91,6 +91,8 @@ namespace SeroJob.AudioSystem
                 alive.Source.playOnAwake = false;
                 alive.Source.pitch = container.Pitch;
                 alive.Source.spatialBlend = container.SpatialBlend;
+
+                if (alive.Player) alive.Player.ApplyEffects(alive);
             }
         }
 

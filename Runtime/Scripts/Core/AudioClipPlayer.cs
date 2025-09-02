@@ -126,22 +126,28 @@ namespace SeroJob.AudioSystem
             }
 
             var data = container.Play(CustomAudioSource);
-            data.PlayerInstanceId = gameObject.GetInstanceID();
-            data.Source.volume *= Volume;
+            data.Player = this;
+
             AliveAudioDatas.Add(data);
+
+            ApplyEffects(data);
+            SetState(State.Playing, false);
+
+            if (AliveAudioDatas.Count < 2) AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
+            if (SyncAudioSourceTransform) StartCoroutine(SyncSourceTransform());
+        }
+
+        public void ApplyEffects(AliveAudioData aliveAudioData)
+        {
+            aliveAudioData.Source.volume *= Volume;
 
             if (Effects != null)
             {
                 foreach (var effect in Effects)
                 {
-                    effect.Apply(data.Container);
+                    effect.Apply(aliveAudioData.Container);
                 }
             }
-
-            SetState(State.Playing, false);
-
-            if (AliveAudioDatas.Count < 2) AudioSystemManager.Instance.OnAudioDied += OnAudioDied;
-            if (SyncAudioSourceTransform) StartCoroutine(SyncSourceTransform());
         }
 
         public void Pause()
