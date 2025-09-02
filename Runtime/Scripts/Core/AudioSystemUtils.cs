@@ -157,8 +157,6 @@ namespace SeroJob.AudioSystem
         {
             if (AudioSystemManager.Instance == null) return null;
 
-            if (customSource == null) return AudioSystemManager.Instance.Play(container);
-
             return AudioSystemManager.Instance.Play(container, customSource);
         }
 

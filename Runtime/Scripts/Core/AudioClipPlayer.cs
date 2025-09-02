@@ -32,6 +32,8 @@ namespace SeroJob.AudioSystem
         public PlayType Type = PlayType.Container;
         public AutoPlayMode PlayMode = AutoPlayMode.None;
         public bool AllowSimultaneousPlay = false;
+        public bool LimitMaxAudioSource = false;
+        public int MaxAudioSource = 1;
         public bool ChooseClipsRespectively = false;
         public bool ClearRespectiveDataWhenStopped = true;
         public bool SyncAudioSourceTransform = false;
@@ -115,7 +117,12 @@ namespace SeroJob.AudioSystem
         public void Play()
         {
             if (!isActiveAndEnabled) return;
-            if (_state != State.Idle && !AllowSimultaneousPlay) return;
+
+            if (_state != State.Idle)
+            {
+                if (!AllowSimultaneousPlay) return;
+                if (LimitMaxAudioSource && AliveAudioDatas.Count >= MaxAudioSource) return;
+            }
 
             var container = GetContainerToPlay();
 

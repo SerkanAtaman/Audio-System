@@ -149,33 +149,16 @@ namespace SeroJob.AudioSystem
             }
         }
 
-        public AliveAudioData Play(AudioClipContainer container)
+        public AliveAudioData Play(AudioClipContainer container, AudioSource audioSource = null)
         {
             if (container == null) return null;
 
-            var source = _audioSourcePool.Pull();
-            source.clip = container.AudioClip;
-            source.transform.localPosition = Vector3.zero;
-            source.gameObject.SetActive(true);
-
-            var aliveData = new AliveAudioData(container, source, false);
-            _aliveAudioData.Add(aliveData);
-
-            aliveData.Refresh();
-            source.Play();
-
-            return aliveData;
-        }
-
-        public AliveAudioData Play(AudioClipContainer container, AudioSource audioSource)
-        {
-            if (container == null) return null;
-            if (audioSource == null) return null;
+            if (audioSource == null) audioSource = _audioSourcePool.Pull();
 
             audioSource.clip = container.AudioClip;
             audioSource.gameObject.SetActive(true);
 
-            var aliveData = new AliveAudioData(container, audioSource, true);
+            var aliveData = new AliveAudioData(container, audioSource, false);
             _aliveAudioData.Add(aliveData);
 
             aliveData.Refresh();

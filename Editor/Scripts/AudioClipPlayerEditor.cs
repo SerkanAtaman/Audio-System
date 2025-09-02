@@ -21,6 +21,8 @@ namespace SeroJob.AudioSystem.Editor
         SerializedProperty _onPlayFinishedProperty;
         SerializedProperty _syncAudioSourceTransformProperty;
         SerializedProperty _allowSimultaneousPlayProperty;
+        SerializedProperty _limitMaxAudioSourceProperty;
+        SerializedProperty _maxAudioSourceProperty;
         SerializedProperty _chooseClipsRespectivelyProperty;
         SerializedProperty _clearRespectiveDataWhenStoppedProperty;
         SerializedProperty _destroyPlayerWhenStoppedProperty;
@@ -51,6 +53,8 @@ namespace SeroJob.AudioSystem.Editor
             _onPlayFinishedProperty = serializedObject.FindProperty("OnPlayFinished");
             _syncAudioSourceTransformProperty = serializedObject.FindProperty("SyncAudioSourceTransform");
             _allowSimultaneousPlayProperty = serializedObject.FindProperty("AllowSimultaneousPlay");
+            _limitMaxAudioSourceProperty = serializedObject.FindProperty("LimitMaxAudioSource");
+            _maxAudioSourceProperty = serializedObject.FindProperty("MaxAudioSource");
             _chooseClipsRespectivelyProperty = serializedObject.FindProperty("ChooseClipsRespectively");
             _clearRespectiveDataWhenStoppedProperty = serializedObject.FindProperty("ClearRespectiveDataWhenStopped");
             _destroyPlayerWhenStoppedProperty = serializedObject.FindProperty("DestroyPlayerWhenStopped");
@@ -140,6 +144,15 @@ namespace SeroJob.AudioSystem.Editor
                 new GUIContent("Allow Simultaneous Play", "Whether the player should play multiple clips simultaneously or play them on after another"));
             if (_allowSimultaneousPlayProperty.boolValue)
             {
+                EditorGUILayout.PropertyField(_limitMaxAudioSourceProperty,
+                    new GUIContent("limit Max Audio Sources", "Enable if the player should not play infinite amout of sources at the same time"));
+
+                if (_limitMaxAudioSourceProperty.boolValue)
+                {
+                    EditorGUILayout.PropertyField(_maxAudioSourceProperty,
+                        new GUIContent("Max Audio Source", "The maximum amount of audio sources the player can play at the same time"));
+                }
+
                 EditorGUILayout.PropertyField(_chooseClipsRespectivelyProperty,
                     new GUIContent("Choose Clips Respectively", "Decide whether the clips from collection should be choosen randomly or respectively"));
 
