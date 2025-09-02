@@ -153,11 +153,11 @@ namespace SeroJob.AudioSystem
         {
             if (container == null) return null;
 
-            var isCustomSource = false;
+            var isCustomSource = true;
             if (audioSource == null)
             {
                 audioSource = _audioSourcePool.Pull();
-                isCustomSource = true;
+                isCustomSource = false;
             }
 
             audioSource.clip = container.AudioClip;
