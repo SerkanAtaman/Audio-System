@@ -41,11 +41,14 @@ namespace SeroJob.AudioSystem.Editor
 
                 if (obj != null)
                 {
-                    newContainers.Add(CreateAudioContainer((AudioClip)obj));
+                    var createdContainer = CreateAudioContainer((AudioClip)obj);
+                    if (createdContainer != null) newContainers.Add(createdContainer);
                 }
 
-                EditorUtility.DisplayProgressBar("Audio System", "Creating audio clip containers", (i + 1) / (float)Selection.count);
+                var isCanceled = EditorUtility.DisplayCancelableProgressBar("Audio System", "Creating audio clip containers", (i + 1) / (float)Selection.count);
                 await System.Threading.Tasks.Task.Delay(16);
+
+                if (isCanceled) break;
             }
 
             AssetDatabase.Refresh();
@@ -66,6 +69,15 @@ namespace SeroJob.AudioSystem.Editor
             var fileName = Path.GetFileNameWithoutExtension(path);
             fileName = "audioContainer_" + fileName + ".asset";
             var containerPath = Path.Combine(directory, fileName);
+
+            var asset = AssetDatabase.LoadAssetAtPath<Object>(containerPath);
+            if (asset != null)
+            {
+                if (asset is AudioClipContainer preContainer) return preContainer;
+                Debug.LogWarning("Failed to create audio clip container because the target path is occupied: " + containerPath);
+                return null;
+            }
+
             var container = ScriptableObject.CreateInstance<AudioClipContainer>();
             container.ReceiveEditorData(clip, AudioContainerLibraryEditorUtils.GenerateUniqueIdentifier());
             AssetDatabase.CreateAsset(container, containerPath);
