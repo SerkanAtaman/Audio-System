@@ -25,26 +25,36 @@ namespace SeroJob.AudioSystem.Editor
         }
 
         [MenuItem("Assets/Create/AudioContainer", priority = 2)]
-        public static void CreateAudioContainer()
+        public static async void CreateAudioContainer()
         {
             if (Selection.count == 0) return;
 
-            EditorUtility.DisplayProgressBar("Audio System", "Creating audio clip containers", 0.0f);
+            var selectionCount = Selection.count;
+
+            EditorUtility.DisplayProgressBar("Audio System", "Creating audio clip containers", 0.05f);
 
             List<Object> newContainers = new List<Object>();
 
-            for (int i = 0; i < Selection.count; i++)
-            {
+            for (int i = 0; i < selectionCount; i++)
+            {                
                 var obj = Selection.objects[i];
-                if (obj == null) continue;
-                newContainers.Add(CreateAudioContainer((AudioClip)obj));
-                EditorUtility.DisplayProgressBar("Audio System", "Creating audio clip containers", i / Selection.count);
+
+                if (obj != null)
+                {
+                    newContainers.Add(CreateAudioContainer((AudioClip)obj));
+                }
+
+                EditorUtility.DisplayProgressBar("Audio System", "Creating audio clip containers", (i + 1) / (float)Selection.count);
+                await System.Threading.Tasks.Task.Delay(16);
             }
 
             AssetDatabase.Refresh();
             AssetDatabase.SaveAssets();
 
-            Selection.objects = newContainers.ToArray();
+            if (newContainers.Count < 10)
+                Selection.objects = newContainers.ToArray();
+            else if (newContainers.Count > 0)
+                Selection.objects = new Object[] { newContainers[0] };
 
             EditorUtility.ClearProgressBar();
         }
@@ -59,7 +69,7 @@ namespace SeroJob.AudioSystem.Editor
             var container = ScriptableObject.CreateInstance<AudioClipContainer>();
             container.ReceiveEditorData(clip, AudioContainerLibraryEditorUtils.GenerateUniqueIdentifier());
             AssetDatabase.CreateAsset(container, containerPath);
-            AudioContainerLibraryEditorUtils.Update(container);
+            AudioContainerLibraryEditorUtils.Update(container, null, false);
             return container;
         }
 

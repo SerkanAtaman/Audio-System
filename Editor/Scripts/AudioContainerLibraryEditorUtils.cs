@@ -128,7 +128,7 @@ namespace SeroJob.AudioSystem.Editor
             Debug.Log($"{assets.Length} amount of AudioClipContainers have been found and added to Audio System Library");
         }
 
-        public static void Update(AudioClipContainer clipContainer, AudioContainerLibrary library = null)
+        public static void Update(AudioClipContainer clipContainer, AudioContainerLibrary library = null, bool saveAfter = true)
         {
             if (library == null) library = GetLibrary();
 
@@ -136,7 +136,7 @@ namespace SeroJob.AudioSystem.Editor
             {
                 library.Containers.Add(clipContainer);
                 EditorUtility.SetDirty(library);
-                AssetDatabase.SaveAssetIfDirty(library);
+                if (saveAfter) AssetDatabase.SaveAssetIfDirty(library);
             }
         }
 
