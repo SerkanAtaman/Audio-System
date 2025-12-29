@@ -184,23 +184,30 @@ namespace SeroJob.AudioSystem.Editor
                     GUI.enabled = true;
                 }
 
-                EditorGUILayout.Space(10);
+                if (Application.isPlaying)
+                {
+                    EditorGUILayout.Space(10);
 
-                if (GUILayout.Button(new GUIContent("Play", "")) && Application.isPlaying)
-                {
-                    player.Play();
-                }
-                if (GUILayout.Button(new GUIContent("Pause", "")) && Application.isPlaying)
-                {
-                    player.Pause();
-                }
-                if (GUILayout.Button(new GUIContent("Resume", "")) && Application.isPlaying)
-                {
-                    player.Resume();
-                }
-                if (GUILayout.Button(new GUIContent("Stop", "")) && Application.isPlaying)
-                {
-                    player.Stop();
+                    if (GUILayout.Button(new GUIContent("Play", "")))
+                    {
+                        player.Play();
+                    }
+                    if (GUILayout.Button(new GUIContent("Pause", "")))
+                    {
+                        player.Pause();
+                    }
+                    if (GUILayout.Button(new GUIContent("Resume", "")))
+                    {
+                        player.Resume();
+                    }
+                    if (GUILayout.Button(new GUIContent("Stop", "")))
+                    {
+                        player.Stop();
+                    }
+                    if (GUILayout.Button(new GUIContent("Restart", "")))
+                    {
+                        player.Restart();
+                    }
                 }
             }
 

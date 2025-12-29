@@ -176,6 +176,20 @@ namespace SeroJob.AudioSystem
             }
         }
 
+        public void Restart()
+        {
+            if (CurrentState == State.Idle || AliveAudioDatas == null) return;
+
+            foreach (var data in AliveAudioDatas)
+            {
+                if (data == null) continue;
+
+                data.Restart();
+            }
+
+            SetState(State.Playing, false);
+        }
+
         public void Stop(bool canDestroy = true, bool isForced = true)
         {
             if (AudioSystemManager.Instance != null)

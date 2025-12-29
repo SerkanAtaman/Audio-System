@@ -57,6 +57,21 @@ namespace SeroJob.AudioSystem
             Source.Play();
         }
 
+        public void Restart()
+        {
+            if (Source == null) return;
+
+            if (IsPaused)
+            {
+                IsPaused = false;
+                TotalPauseTime += Time.time - PauseStartTime;
+            }
+
+            BornTime = Time.time;
+            Source.Stop();
+            Source.Play();
+        }
+
         public void Dispose()
         {
             Container = null;
