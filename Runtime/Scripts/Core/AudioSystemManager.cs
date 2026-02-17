@@ -145,7 +145,9 @@ namespace SeroJob.AudioSystem
         {
             foreach (var aliveData in _aliveAudioData)
             {
-                if (!aliveData.IsDisposed)
+                if (aliveData == null) continue;
+
+                if (!aliveData.IsDisposed && aliveData.Container != null)
                     aliveData.Container.RefreshAliveDatas();
             }
         }
