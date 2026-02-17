@@ -21,7 +21,7 @@ namespace SeroJob.AudioSystem
         {
             get
             {
-                if (IsDisposed) return true;
+                if (IsDisposed || Source == null) return true;
                 if (Source.loop) return false;
 
                 return Time.time > BornTime + LifeTime + 0.05f + TotalPauseTime;

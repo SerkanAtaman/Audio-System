@@ -55,6 +55,7 @@ namespace SeroJob.AudioSystem
             if (Time.time - _lastUpdateTime < 0.1f) return;
 
             _lastUpdateTime = Time.time;
+            _aliveAudioData.RemoveAll(x => x == null);
 
             foreach (var aliveData in _aliveAudioData)
             {
