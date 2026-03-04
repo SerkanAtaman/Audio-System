@@ -74,17 +74,17 @@ namespace SeroJob.AudioSystem
 
         public static void RefreshAliveDatas(this AudioClipContainer container, AudioSystemSettings settings = null)
         {
-            if (AudioSystemManager.Instance == null) return;
-            if (container == null) return;
+            if (AudioSystemManager.Instance == null || container == null) return;
             var volume = GetTargetVolume(container);
             var alives = container.GetAllAliveAudioData();
-            if (alives == null) return;
             if (settings == null) settings = AudioSystemManager.Instance.Settings;
 
-            var category = settings.GetCategoryByID(container.CategoryID);
+            if (alives == null || settings == null) return;
 
+            var category = settings.GetCategoryByID(container.CategoryID);
             foreach (var alive in alives)
             {
+                if (alive == null || alive.Source == null) continue;
                 alive.Source.volume = volume;
                 alive.Source.mute = category != null && category.Value.Muted;
                 alive.Source.loop = container.Loop;
@@ -99,8 +99,10 @@ namespace SeroJob.AudioSystem
         public static void Refresh(this AliveAudioData aliveAudioData, AudioSystemSettings settings = null)
         {
             if (AudioSystemManager.Instance == null) return;
+            if (aliveAudioData == null || aliveAudioData.Container == null || aliveAudioData.Source == null) return;
 
             if (settings == null) settings = AudioSystemManager.Instance.Settings;
+            if (settings == null) return;
 
             var category = settings.GetCategoryByID(aliveAudioData.Container.CategoryID);
             var volume = GetTargetVolume(aliveAudioData.Container);
