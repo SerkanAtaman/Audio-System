@@ -4,7 +4,6 @@
     "references": [
         "com.serojob.objectpool.runtime",
         "com.serojob.fancyattributes.core",
-        "DOTween.Modules",
         "Unity.Addressables",
         "Unity.ResourceManager"
     ],

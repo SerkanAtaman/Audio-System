@@ -1,5 +1,3 @@
-using DG.Tweening;
-
 namespace SeroJob.AudioSystem
 {
     [System.Serializable]
@@ -10,13 +8,13 @@ namespace SeroJob.AudioSystem
         public float EndVolume;
         public float Duration;
 
-        private Tween _tween;
+        private System.Collections.IEnumerator _coroutine;
 
         public override void Apply(AudioClipContainer container)
         {
-            _tween?.Kill();
+            AudioSystemManager.StopRunningCoroutine(_coroutine);
 
-            _tween = DOVirtual.Float(StartVolume, EndVolume, Duration, (value) =>
+            _coroutine = AudioSystemManager.RunVolumeCoroutine(StartVolume, EndVolume, Duration, !TimeScaleIndependent, (delta, value) =>
             {
                 var alives = container.GetAllAliveAudioData();
                 var target = container.GetTargetVolume();
@@ -24,18 +22,18 @@ namespace SeroJob.AudioSystem
                 {
                     alive.Source.volume = target * value;
                 }
-            });
-            _tween.onComplete += () =>
-            {
-                _tween = null;
-            };
 
-            if (TimeScaleIndependent) _tween.SetUpdate(true);
+                if (delta >= 1)
+                {
+                    _coroutine = null;
+                }
+            });
         }
 
         public override void Remove(AudioClipContainer container)
         {
-            _tween?.Kill();
+            AudioSystemManager.StopRunningCoroutine(_coroutine);
+            _coroutine = null;
         }
     }
 }

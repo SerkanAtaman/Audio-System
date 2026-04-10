@@ -291,6 +291,41 @@ namespace SeroJob.AudioSystem
             }
         }
 
+        internal static System.Collections.IEnumerator RunVolumeCoroutine(float start, float end, float duration,
+            bool timeScaleDependent, System.Action<float, float> onUpdated)
+        {
+            if (Instance == null || !Instance.isActiveAndEnabled || duration <= 0) return null;
+
+            var coroutine = Instance.VolumeCoroutine(start, end, duration, timeScaleDependent, onUpdated);
+            Instance.StartCoroutine(coroutine);
+            return coroutine;
+        }
+
+        internal static void StopRunningCoroutine(System.Collections.IEnumerator coroutine)
+        {
+            if (Instance == null || coroutine == null || !Instance.isActiveAndEnabled) return;
+
+            Instance.StopCoroutine(coroutine);
+        }
+
+        private System.Collections.IEnumerator VolumeCoroutine(float start, float end, float duration,
+            bool timeScaleDependent, System.Action<float, float> onUpdate)
+        {
+            var timer = 0.0f;
+
+            while (timer < duration)
+            {
+                var delta = Mathf.Clamp01(timer / duration);
+                var value = Mathf.Lerp(start, end, delta);
+                onUpdate?.Invoke(delta, value);
+                timer += timeScaleDependent ? Time.deltaTime : Time.unscaledDeltaTime;
+
+                yield return null;
+            }
+
+            onUpdate?.Invoke(1, end);
+        }
+
         #region EDITOR
 #if UNITY_EDITOR
         public static void EditorInit()
